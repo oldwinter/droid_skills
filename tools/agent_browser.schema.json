@@ -1,0 +1,19 @@
+{
+  "type": "function",
+  "function": {
+    "name": "agent_browser",
+    "description": "Execute an agent-browser command. Runs against the active session by default. Add --session <name> to target or create a different session, and --engine <engine> to choose a browser engine.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "command": {
+          "type": "string",
+          "description": "The command to execute, e.g. 'agent-browser open https://google.com' or 'agent-browser --session new-session open https://example.com' or 'agent-browser snapshot -i' or 'agent-browser click @e3'"
+        }
+      },
+      "required": [
+        "command"
+      ]
+    }
+  }
+}
