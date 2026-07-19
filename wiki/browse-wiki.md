@@ -1,58 +1,58 @@
 ---
 name: browse-wiki
-description: 'Search and read wiki documentation for a repository'
+description: '搜索并阅读仓库的 Wiki 文档'
 user-invocable: false
 ---
 
-# Wiki search
+# Wiki 搜索
 
-Search and browse Factory Wiki documentation for any repository. Use the `droid wiki-read` and `droid wiki-search` CLI commands to find information in wiki pages.
+使用`droid wiki-read`和`droid wiki-search`CLI 命令，在 Wiki 页面中查找信息，搜索并浏览任何仓库的 Factory Wiki 文档。
 
-## Local wiki access
+## 本地 Wiki 访问
 
-Wiki pages may be stored locally under a `droid-wiki/` folder in the repository root. If a `droid-wiki/` directory exists in the current project, read `.md` files directly from it instead of using the CLI commands below. This is faster and works offline.
+Wiki 页面可能存储在仓库根目录下的`droid-wiki/`文件夹中。如果当前项目存在一个名为`droid-wiki/`的目录，直接从该目录读取`.md`文件而不是使用下方的 CLI 命令。这更快且可以在离线状态下工作。
 
-Only use `droid wiki-read` / `droid wiki-search` for remote access when no local `droid-wiki/` directory exists.
+仅当不存在本地`droid wiki-read`目录时，才使用`droid wiki-search` / `droid-wiki/`进行远程访问。
 
-## Parsing wiki URLs
+## 解析 wikiURL
 
-When a user pastes a Factory wiki URL, extract the relevant identifiers:
+当用户粘贴一个 Factory Wiki URL 时，提取相关的标识符：
 
 ```
 https://app.factory.ai/wiki/{wikiRunId}?page={pageId}
 ```
 
-- `wikiRunId` — the wiki run identifier (required). Pass it via `--wiki-run-id`.
-- `pageId` — a specific page within the wiki (optional). Pass it via `--page` to `wiki-read`.
+- `wikiRunId` — Wiki 运行标识符（必需）。通过`--wiki-run-id`传递它。
+- `pageId` — Wiki 中的特定页面（可选）。通过`--page`传递给`wiki-read`。
 
-Example: given `https://app.factory.ai/wiki/abc123?page=getting-started`, extract `wikiRunId=abc123` and `pageId=getting-started`.
+示例：给定 `https://app.factory.ai/wiki/abc123?page=getting-started`, `wikiRunId=abc123` 和 `pageId=getting-started`.
 
-## Page ID format
+## 页面 ID 格式
 
-Page IDs use **double-dash (`--`) separators** to represent directory hierarchy, without `.md` extensions:
+页面 ID 使用**双短横线（`--`）分隔符**表示目录层次结构，不包含`.md`扩展名：
 
-- ✅ `features--agent-readiness-reports` (correct)
-- ✅ `overview--getting-started` (correct)
-- ❌ `features/agent-readiness-reports.md` (wrong - causes 500 error)
-- ❌ `agent-readiness-reports` (wrong - page not found if in subdirectory)
+- ✅ `features--agent-readiness-reports` (正确)
+- ✅ `overview--getting-started` (正确)
+- ❌ `features/agent-readiness-reports.md` (错误 - 导致 500 错误)
+- ❌ `agent-readiness-reports` (错误 - 如果在子目录中则页面未找到)
 
-When browsing the page tree with `droid wiki-read --wiki-run-id <id>`, the correct page ID is shown in parentheses next to each page title. Use those exact IDs with the `--page` parameter.
+使用 `droid wiki-read --wiki-run-id <id>` 浏览页面树时，正确的页面 ID 将在每个页面标题旁边括号内显示。请使用输出中的这些确切 ID 与 `--page` 参数一起使用。
 
-## Available commands
+## 可用命令
 
-### Browse historical wiki runs
+### 浏览历史 Wiki 运行
 
-Use `droid wiki-read --repo-url <url>` without `--wiki-run-id` and `--page` to list all historical wiki runs for a repository:
+使用 `droid wiki-read --repo-url <url>` 而不带 `--wiki-run-id` 和 `--page` 列出仓库的所有历史 Wiki 运行:
 
 ```bash
 droid wiki-read --repo-url https://github.com/org/repo
 ```
 
-This prints a table of all runs with their wiki run IDs, dates, branches, commit hashes, and page counts. Use `--wiki-run-id <id>` from the output to drill into a specific run.
+这会打印所有运行的表格，包括它们的 Wiki 运行 ID、日期、分支、提交哈希和页面数量。使用输出中的 `--wiki-run-id <id>` 深入特定运行。
 
-### Browse the page tree
+### 浏览页面树
 
-Use `droid wiki-read` to see the full page tree of a wiki:
+使用 `droid wiki-read` 查看 Wiki 的所有页面:
 
 ```bash
 # By repository URL + page (resolves the latest wiki run automatically)
@@ -62,11 +62,11 @@ droid wiki-read --repo-url https://github.com/org/repo --page index
 droid wiki-read --wiki-run-id abc123
 ```
 
-This prints a hierarchical list of all pages with their titles and page IDs.
+这会打印所有页面的分层列表，包括它们的标题和页面 ID。
 
-### Search for keywords
+### 搜索关键词
 
-Use `droid wiki-search` to find pages matching a keyword:
+使用 `droid wiki-search` 查找匹配关键词的页面:
 
 ```bash
 # Search by repo URL
@@ -79,11 +79,11 @@ droid wiki-search --wiki-run-id abc123 --query "deploy"
 droid wiki-search --repo-url https://github.com/org/repo --query "API" --limit 5
 ```
 
-Results include page title, path, and a text snippet showing where the keyword appears.
+结果包括页面标题、路径以及显示关键词出现位置的文本片段。
 
-### Read a specific page
+### 阅读特定页面
 
-Use `droid wiki-read --page` to fetch the full content of a page:
+使用 `droid wiki-read --page` 获取页面的完整内容:
 
 ```bash
 # By repo URL + page ID
@@ -93,30 +93,28 @@ droid wiki-read --repo-url https://github.com/org/repo --page getting-started
 droid wiki-read --wiki-run-id abc123 --page getting-started
 ```
 
-This prints the page title, path, and full markdown content.
+这会打印页面标题、路径和完整的 markdown 内容。
 
-## Chaining commands
+## 命令链式调用
 
-For most user questions about wiki content, chain the commands in this order:
+对于大多数关于 Wiki 内容的问题，按以下顺序链式调用命令：
 
-1. **Browse history or tree first.** Run `droid wiki-read --repo-url <url>` to see available runs, or `droid wiki-read --wiki-run-id <id>` to see the page tree of a specific run.
-2. **Search for the topic.** Run `droid wiki-search --repo-url <url> --query "<keyword>"` to find pages relevant to the user's question.
-3. **Read specific pages.** Run `droid wiki-read --repo-url <url> --page <pageId>` for each relevant result to get the full content.
+1. **浏览历史或目录**。运行 `droid wiki-read --repo-url <url>` 查看可用的运行记录，或者运行 `droid wiki-read --wiki-run-id <id>` 查看特定运行的页面树结构。
+2. **搜索主题**。运行 `droid wiki-search --repo-url <url> --query "<keyword>"` 在相关页面中查找用户的问题内容。
+3. **阅读具体页面**。对于每个相关结果，运行 `droid wiki-read --repo-url <url> --page <pageId>` 获取完整的内容。
 
-This approach gives you the best context: history shows available runs, the tree shows overall structure, search narrows to relevant pages, and reading gives the details.
+这种方法能提供最佳的上下文：历史记录显示可用的运行记录，目录结构展示整体框架，搜索缩小到相关页面，而阅读则提供详细内容。
 
-## Handling common requests
+## 处理常见请求
 
-**"What does the wiki say about X?"**
-Search for X, then read the top results:
+**“Wiki 关于 X 说了什么？”** 搜索关键词 X，然后阅读最相关的结果：
 
 ```bash
 droid wiki-search --repo-url <url> --query "X"
 droid wiki-read --repo-url <url> --page <pageId-from-results>
 ```
 
-**"Show me the architecture docs"**
-Browse the tree to find architecture-related pages, then read them:
+**“显示架构文档”**：浏览页面树，找到与架构相关的页面并读取：
 
 ```bash
 droid wiki-read --wiki-run-id <id>
@@ -124,25 +122,23 @@ droid wiki-read --wiki-run-id <id>
 droid wiki-read --wiki-run-id <id> --page architecture
 ```
 
-**"Find info about authentication"**
-Search and read:
+**"Find info about authentication"** 搜索并阅读：
 
 ```bash
 droid wiki-search --repo-url <url> --query "authentication"
 droid wiki-read --repo-url <url> --page <relevant-pageId>
 ```
 
-**User pastes a wiki URL**
-Extract the wikiRunId (and optional pageId) from the URL and use them directly:
+**用户粘贴一个 Wiki URL** 从 URL 中提取 wikiRunId（和可选的 pageId），并直接使用它们：
 
 ```bash
 # Full URL: https://app.factory.ai/wiki/abc123?page=getting-started
 droid wiki-read --wiki-run-id abc123 --page getting-started
 ```
 
-## Tips
+## 提示
 
-- When `--repo-url` is used without `--wiki-run-id` and `--page`, the command shows a history of all wiki runs. Add `--page` to auto-resolve the latest run and fetch a specific page.
-- Search is case-insensitive and matches against both page titles and content.
-- If search returns no results, try broader keywords or browse the tree to discover the right terminology.
-- The `--json` flag is available on both commands for machine-readable output.
+- 当使用`--repo-url`而不使用`--wiki-run-id`和`--page`时，命令会显示所有 Wiki 运行的历史记录。添加`--page`以自动解决最新运行并获取特定页面。
+- 搜索是不区分大小写的，并且匹配页面标题和内容。
+- 如果搜索没有返回结果，请尝试更广泛的关键词或浏览树状图以发现正确的术语。
+- 两个命令都可用`--json`标志，用于机器可读的输出。

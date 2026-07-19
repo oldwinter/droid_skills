@@ -1,61 +1,49 @@
 ---
 name: powerpoint
-description: Produce polished PowerPoint presentations (decks, slide shows, pitch decks, any "export to PowerPoint" deliverable). Use whenever the user asks for a PowerPoint, a slide deck, or a presentation.
+description: 生成精美的 PowerPoint 演示文稿（演示稿、幻灯片、路演材料，以及任何“导出为 PowerPoint”的交付物）。当用户要求 PowerPoint、幻灯片集或演示文稿时使用。
 ---
 
-# Authoring PowerPoint presentations
+# 编写 PowerPoint 演示文稿
 
-When the user wants a PowerPoint, author it as a set of **HTML/CSS slides** and
-let Factory render it to a real `.pptx` on the fly. Do **not** generate a binary
-`.pptx`, do **not** write a script, and do **not** add any presentation library
-or CDN.
+当用户需要 PowerPoint 时，请编写一组**HTML/CSS 幻灯片**，由 Factory 按需渲染为真正的 `.pptx` 文件。**不要**生成二进制 `.pptx`，**不要**编写脚本，**不要**添加任何演示文稿库或 CDN。
 
-Each slide is a `<section class="slide">` frame of plain HTML styled with inline
-CSS. It is pure content (no scripts, no remote resources), which keeps generation
-safe. Factory validates it, renders each slide, and shows it inline with a
-working **Download PowerPoint** button (download is available on the desktop app).
+每张幻灯片都是一个使用内联 CSS 设置样式的 `<section class="slide">` 框架。内容是纯 HTML（无脚本、无远程资源），因此可以安全生成。Factory 会验证并渲染每张幻灯片，直接显示预览，并提供可用的 **下载 PowerPoint** 按钮（桌面应用支持下载）。
 
-## How to produce the deck
+## 如何生成演示文稿
 
-1. Write **one** file whose name ends in `.pptx.html` — e.g. `deck.pptx.html`,
-   `pitch.pptx.html`, `quarterly-review.pptx.html`. The user only ever sees it
-   as a PowerPoint (e.g. `deck.pptx`); the `.html` is an internal detail.
-2. The file is a single HTML document containing one `<section class="slide">`
-   per slide, plus a `<style>` block for shared styling.
-3. Do **not** also write a `.pptx` file — the PowerPoint is generated on demand
-   and is not persisted to the workspace.
+1. 编写**一个**文件，其名称以 `.pptx.html` 结尾——例如 `deck.pptx.html`,
+   `pitch.pptx.html`, `quarterly-review.pptx.html`。用户只会看到 PowerPoint 文件（例如 `deck.pptx`）；`.html` 扩展名只是内部实现细节。
+2. 该文件是一个 HTML 文档，每张幻灯片对应一个 `<section class="slide">`，
+   并包含一个用于共享样式的 `<style>` 块。
+3. **不要**再写入 `.pptx` 文件——PowerPoint 会按需生成，
+   且不会持久化到工作区。
 
-## What to tell the user
+## 如何告知用户
 
-Talk about it as a **PowerPoint** ("I've created your pitch deck — open it to
-preview and download"). Never mention HTML, CSS, or the slide markup format.
+将交付物称为 **PowerPoint**（例如：“我已创建演示文稿，请打开预览并下载。”）。不要提及 HTML、CSS 或幻灯片标记格式。
 
-## Slide rules (these are enforced — stay within them)
+## 幻灯片规则（强制执行）
 
-- Each slide is a `<section class="slide">…</section>`. The deck must contain at
-  least one such section; sections without `class="slide"` are ignored.
-- Design every slide for a **16:9 frame of 720\xD7405pt (960\xD7540px)**. The frame
-  size is fixed for you — do not override the `.slide` width/height; lay your
-  content out within it.
-- **No scripts, event handlers, or remote resources.** `<script>`, `on*`
-  handlers, remote `src`/`href`, CSS `@import`, and non-`data:` `url(...)` are
-  all stripped. Anything fetched from the network is removed.
-- **Images** must be embedded as base64 `data:` URIs
-  (`data:image/png;base64,…`, or jpeg, gif, webp). Remote URLs and file paths
-  will be removed. Omit images you cannot embed.
-- **Fonts**: use web-safe families (e.g. Arial, Helvetica, Georgia,
-  "Times New Roman", system-ui) or embed a font as a `data:` URI. Do not link to
-  Google Fonts or any remote stylesheet.
+- 每张幻灯片都必须是 `<section class="slide">…</section>`。演示文稿至少要包含
+  一个此类 section；没有 `class="slide"` 的 section 会被忽略。
+- 每张幻灯片都按 **16:9、720\xD7405pt（960\xD7540px）的画框**设计。画框
+  尺寸固定；不要覆盖 `.slide` 的宽度或高度，请在画框内安排内容。
+- **不得包含脚本、事件处理器或远程资源。** `<script>`、`on*`
+  handler、远程 `src`/`href`、CSS `@import` 和非 `data:` 的 `url(...)` 都会被移除。任何需要从网络获取的内容也会被删除。
+- **图片**必须嵌入为 base64 `data:` URI
+  （`data:image/png;base64,…`，也支持 jpeg、gif、webp）。远程 URL 和文件路径会被移除；无法嵌入的图片应直接省略。
+- **字体**：使用 Web 安全字体族（例如 Arial、Helvetica、Georgia、
+  "Times New Roman"、system-ui），或将字体嵌入为 `data:` URI。不要链接 Google Fonts 或任何远程样式表。
 
-## How to design good slides
+## 如何设计好的幻灯片
 
-- Use inline CSS in the `<style>` block; class names and absolute positioning
-  within `.slide` work well for precise layouts.
-- Keep one idea per slide: a title, a few bullets, and supporting visuals.
-- Use generous font sizes (titles ~40px, body ~24px) so slides read well.
-- Use background color, accent bars, and spacing for visual hierarchy.
+- 在 `<style>` 块中使用内联 CSS；类名和绝对定位
+  在 `.slide` 中使用效果很好，适用于精确布局。
+- 每张幻灯片只保留一个想法：标题、几条要点和辅助视觉效果。
+- 使用大方的字体大小（标题 ~40px，正文 ~24px），以便幻灯片易于阅读。
+- 使用背景颜色、强调栏和间距来构建视觉层次结构。
 
-## Minimal example (`deck.pptx.html`)
+## 最小化示例 (`deck.pptx.html`)
 
 ```html
 <!doctype html>

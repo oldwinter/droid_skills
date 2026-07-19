@@ -1,68 +1,68 @@
 ---
 name: define-mission-skills
-description: Guides the orchestrator through designing worker types and their skills.
+description: 引导协调器设计工作类型及其 skill 的过程。
 ---
 
-# Designing Your Worker System
+# 设计您的工作系统
 
-Your job is to design a system of workers that will produce complete, high-quality work.
+您的任务是设计一个生产完整高质量工作的工人系统。
 
-## Step 1: Analyze Effective Work Boundaries
+## 步骤 1：分析有效的工作边界
 
-Ask yourself:
-- What distinct layers or domains does this mission touch?
-- Do different areas benefit from different procedures or tools?
+问自己:
+- 这项任务触及了哪些不同的层次或领域?
+- 不同的区域是否需要不同的流程或工具?
 
-Each distinct boundary typically maps to a worker type.
+每个不同的边界通常对应一种工作类型。
 
-## Step 2: Design Worker Types
+## 步骤 2：设计工作类型
 
-For each boundary, determine:
-- What skills/tools are essential for doing thorough work in this area?
-- How does it verify its work? (TDD + manual verification)
-- What does a thorough handoff look like?
+对于每个边界，确定:
+- 在这个区域内进行彻底工作的必备 skill/工具是什么?
+- 它如何验证其工作？（TDD + 手动验证）
+- 详尽的手工移交是什么样子？
 
-## Automatic Validation (Builtin)
+## 自动验证 (内置)
 
-The system automatically injects two validation features when a milestone completes:
+系统在里程碑完成时会自动注入两个验证功能：
 
-1. **scrutiny-validator** — Runs validators, spawns review subagents for each completed feature, synthesizes findings. If it fails, goes back to pending for re-run after fixes.
-2. **user-testing-validator** — Determines testable assertions from `fulfills`, sets up environment, spawns flow validator subagents, synthesizes results. If it fails, goes back to pending for re-run after fixes.
+1. **scrutiny-validator** — 运行验证器，为每个已完成的功能启动审查子 agent，并综合发现结果。如果失败，则在修复后返回待处理状态重新运行。
+2. **user-testing-validator** — 从 `fulfills` 中确定可测试断言，设置环境，启动流程验证子 agent，并综合结果。如果失败，则在修复后返回待处理状态重新运行。
 
-You do NOT create these yourself — they are auto-injected by the system.
+你不需要自己创建这些功能——它们由系统自动注入。
 
-## Guiding Principles
+## 指导原则
 
-1. **Procedural Clarity** - There should be no important ambiguity about what to do, in what order, and with what.
+1. **程序清晰性** - 关于做什么、顺序和使用什么不应有任何重要的模糊性。
 
-2. **Test-Driven Development** - Tests are written before implementation, always. Workers write failing tests first (red), then implement to make them pass (green).
+2. **测试驱动开发** - 测试应在实现之前编写，始终如此。工人应首先编写失败的测试（红色），然后实施使其通过（绿色）。
 
-3. **Manual Verification** - Automated tests are necessary but not sufficient. Workers must manually verify their work catches issues tests miss.
+3. **手工验证** - 自动化测试是必要的但不充分的。工人必须手动验证他们的工作以捕捉测试遗漏的问题。
 
-4. **No orphaned processes** - Workers must not leave any test runners or other processes running:
-  - Avoid watch/interactive modes for tests unless explicitly required.
-  - If a test command starts a long-running process (e.g., watch mode, browser runner), the worker must stop it and ensure any child processes they started are also terminated (by PID, not by name).
+4. **无孤儿进程** - 工人不应留下任何测试运行器或其他正在运行的过程：
+  - 避免在测试中使用 watch/交互模式，除非明确需要。
+  - 如果测试命令启动了一个长时间运行的过程（例如，watch 模式、浏览器运行器），工作者必须停止它，并确保它们启动的任何子进程也被终止（通过 PID 而不是名称）。
 ---
 
-## Creating Worker Skills
+## 创建工作者 skill
 
-For each worker type, create a skill in missionDir:
+为每种工作者类型，在 missionDir 中创建一个 skill：
 
 ```
 skills/{worker-type}/SKILL.md
 ```
 
-**IMPORTANT:** Skills go in missionDir, NOT in any repository `.factory/` directory. Mission sessions load skills from `{missionDir}/skills/`.
+**重要提示**：skill 应放在 missionDir 中，而不是在任何仓库的 `.factory/` 目录中。任务会话从 `{missionDir}/skills/` 加载 skill。
 
-### Worker Skill Structure
+### 工作者 skill 结构
 
-Every worker skill MUST include:
+每个工作者 skill 必须包括：
 
-1. **YAML frontmatter** - name and description
-2. **Required Skills and Tools** - skills and tools workers of this type must use during their work. Include anything the user or the mission finalized as binding. "None" if not applicable.
-3. **Work Procedure** - step-by-step process. Be specific about required skills/tools.
-4. **Example Handoff** - a complete, realistic handoff showing what thorough work looks like
-5. **When to Return to Orchestrator** - skill-specific conditions
+1. **YAML 前置信息** - 名称和描述
+2. **所需 skill 和工具** - 该类型工作者在工作中必须使用的 skill 和工具。包含用户或任务最终确定的任何绑定项。“None”如果不适用。
+3. **工作流** - 步骤说明。具体说明所需的 skill/工具。
+4. **示例移交** - 完整且现实的移交示例，展示彻底工作的样子
+5. **何时返回协调器** - skill 特定条件
 
 ```markdown
 ---
@@ -91,29 +91,29 @@ NOTE: Startup and cleanup are handled by `worker-base`. This skill defines the W
 {Skill-specific conditions beyond standard cases}
 ```
 
-**The Example Handoff defines the upper bound of worker effort.** Workers pattern-match against it; the effort you show is the effort you'll get back. Write the example with the depth the worker's scope warrants, covering the full breadth of responsibilities in the Work Procedure. Keep it grounded in what a real, thorough handoff for this worker would contain.
+**示例交接定义了 worker 投入程度的上限。** worker 会据此匹配模式；示例展示多深的投入，实际执行就会达到相应深度。请按照 worker 职责所需的深度编写示例，覆盖该工作流的全部职责范围，并以真实、详尽的交接内容为基础。
 
-**Handoff fields** (used by EndFeatureRun tool):
+**Handoff 字段**（由 EndFeatureRun 工具使用）:
 
-| Field                             | Purpose                                                |
+| 字段                             | 目的                                                |
 | --------------------------------- | ------------------------------------------------------ |
-| `salientSummary`                  | 1–4 sentence summary of what happened in the session   |
-| `whatWasImplemented`              | Concrete description of what was built (min 50 chars)  |
-| `whatWasLeftUndone`               | What's incomplete - empty string if truly done         |
-| `verification.commandsRun`        | Shell commands with `{command, exitCode, observation}` |
-| `verification.interactiveChecks`  | UI/browser checks with `{action, observed}` |
-| `tests.added`                     | Test files with `{file, cases: [{name, description}]}`. `name` matches the test runner identifier (e.g., the string in `it(...)`, or the test function name). `description` is prose about what the test checks. |
-| `discoveredIssues`                | Issues found: `{severity, description, suggestedFix?}` |
+| `salientSummary`                  | 会话中发生了什么的一个 1-4 句话总结   |
+| `whatWasImplemented`              | 具体描述所构建的内容（至少 50 个字符）  |
+| `whatWasLeftUndone`               | 未完成的部分 - 如果真正完成了则为空字符串         |
+| `verification.commandsRun`        | Shell 命令带有`{command, exitCode, observation}` |
+| `verification.interactiveChecks`  | UI/浏览器检查带有`{action, observed}` |
+| `tests.added`                     | 测试文件带有`{file, cases: [{name, description}]}`。`name`匹配测试运行器标识符（例如，`it(...)`中的字符串或测试函数名称）。`description`是对测试检查内容的描述性文字 |
+| `discoveredIssues`                | 发现的问题：`{severity, description, suggestedFix?}` |
 
-Examples of good `salientSummary` (be concrete, 1–4 sentences):
-- Success: "Implemented GET /api/products/search with cursor pagination + min-length validation; ran `npm test -- --grep 'product search'` (4 passing) and verified 400 on `q=a` plus 200 on a real curl request."
-- Failure: "Tried to wire logout to `SessionStore`, but `bun run typecheck` failed (missing import) and `bun test auth` had 2 failing tests; returning to orchestrator to decide whether to add session persistence or change logout semantics."
+良好的`salientSummary`示例（具体说明，1-4 句话）:
+- 成功: "实现了 GET /api/products/search，并添加了游标分页和最小长度验证；运行了`npm test -- --grep 'product search'`（通过4 个测试），并通过真实的 curl 请求验证了`q=a`返回400 以及实际的200 响应。"
+- 失败: "尝试将注销与`SessionStore`关联，但`bun run typecheck`失败（缺少导入）且`bun test auth`有2 个未通过的测试；返回到协调器以决定是否添加会话持久化或更改注销语义。"
 
-## When to Return to Orchestrator
+## 何时返回到协调器
 
-- Feature depends on an API endpoint or data model that doesn't exist yet
-- Requirements are ambiguous or contradictory
-- Existing bugs affect this feature
+- 功能依赖于尚未存在的 API 端点或数据模型
+- 需求模糊或矛盾
+- 现有 bug 影响此功能
 ````
 
 ---

@@ -1,36 +1,29 @@
 ---
 name: excel
-description: Produce polished Excel spreadsheets (reports, budgets, data exports, any "export to Excel" deliverable). Use whenever the user asks for an Excel file, a spreadsheet, or an .xlsx deliverable.
+description: 生成精美的 Excel 表格（报告、预算、数据导出，任何“导出为 Excel”的交付物）。每当用户要求 Excel 文件、电子表格或 .xlsx 交付物时都使用此功能。
 ---
 
-# Authoring Excel spreadsheets
+# 编写 Excel 电子表格
 
-When the user wants an Excel file, author it as a **JSON workbook spec** and
-let Factory render it to a real `.xlsx` on the fly. Do **not** generate a
-binary `.xlsx`, do **not** write a script, and do **not** add any spreadsheet
-library.
+当用户需要 Excel 文件时，请编写一份**JSON 工作簿规范**，由 Factory 按需渲染为真正的 `.xlsx` 文件。**不要**生成二进制 `.xlsx`，**不要**编写脚本，**不要**添加任何电子表格库。
 
-The spec is pure data (no scripts, no remote resources), which keeps
-generation safe. Factory validates it, shows it inline as a spreadsheet grid
-with sheet tabs, and provides a working **Download Excel** button.
+规范是纯数据（没有脚本，没有远程资源），这使生成更加安全。Factory 会验证它，在其中显示为一个包含工作表标签的电子表格网格，并提供一个可用的 **下载 Excel** 按钮。
 
-## How to produce the workbook
+## 如何生成工作簿
 
-1. Write **one** file whose name ends in `.xlsx.json` — e.g. `budget.xlsx.json`,
-   `q3-report.xlsx.json`. The user only ever sees it as an Excel file (e.g.
-   `budget.xlsx`); the `.json` is an internal detail.
-2. The file is a single JSON document matching the schema below.
-3. Do **not** also write a `.xlsx` file — the Excel file is generated on
-   demand and is not persisted to the workspace.
+1. 编写**一个**文件，其名称以 `.xlsx.json` 结尾——例如 `budget.xlsx.json`、
+   `q3-report.xlsx.json`。用户只会将其视为 Excel 文件（例如 `budget.xlsx`）；`.json` 扩展名仅供内部使用。
+2. 该文件是一个符合以下 schema 的 JSON 文档。
+3. **不要**再写入 `.xlsx` 文件——Excel 文件会按需生成，
+   且不会持久化到工作区。
 
-## What to tell the user
+## 告诉用户的内容
 
-Talk about it as an **Excel file** ("I've created your budget spreadsheet —
-open it to preview and download"). Never mention JSON or the spec format.
+将其视为一个 **Excel 文件**（“我已经创建了你的预算表格——打开它预览并下载”）。不要提及 JSON 或规范格式。
 
-## Workbook schema (these rules are enforced — stay within them)
+## 工作簿规范（以下规则会强制执行）
 
-The top level is `{ "sheets": [...] }` with 1–20 sheets. Each sheet:
+顶层是 `{ "sheets": [...] }`，包含1 到20 张表格。每张表格：
 
 ```jsonc
 {
@@ -43,8 +36,7 @@ The top level is `{ "sheets": [...] }` with 1–20 sheets. Each sheet:
 }
 ```
 
-Each cell is either a plain value (`"text"`, `123.45`, `true`, or `null` for
-an empty cell) or an object:
+每个单元格要么是一个普通的值（例如，`"text"`，`123.45`，`true` 或 `null` 表示空单元格），要么是一个对象：
 
 ```jsonc
 {
@@ -61,12 +53,9 @@ an empty cell) or an object:
 }
 ```
 
-### Conditional formatting
+### 条件格式化
 
-Each sheet may have a `conditionalFormats` array (≤50 entries, ≤10 rules
-each). Every entry targets one A1-style cell or range and lists rules in
-priority order — when rules conflict, earlier rules win. Rules stay **live**
-in the downloaded file: Excel re-evaluates them as the user edits values.
+每个工作表可以包含一个 `conditionalFormats` 数组（不超过 50 项，每项不超过 10 条规则）。每一项针对一个 A1 样式的单元格或范围，并按优先级列出规则——当规则冲突时，较早的规则优先。规则在下载的文件中保持**有效**：Excel 会在用户编辑值时重新评估这些规则。
 
 ```jsonc
 "conditionalFormats": [
@@ -92,32 +81,25 @@ in the downloaded file: Excel re-evaluates them as the user edits values.
 ]
 ```
 
-`style` accepts `fill`, `color` (both `#RRGGBB`), `bold`, and `italic`.
+`style` 接受 `fill`, `color`（两者都是 `#RRGGBB` 格式），`bold`, 和 `italic`.
 
-Prefer conditional formatting over hand-baked static fills whenever the
-formatting encodes the **data** — thresholds (`cellIs`), heatmaps
-(`colorScale`), in-cell bars (`dataBar`), outliers (`top10`,
-`aboveAverage`) — so the workbook updates itself when values change. Use
-static `fill`/`bold` on cells only for fixed structure like header rows.
+当格式用于编码**数据**时，例如阈值（`cellIs`）、热图（`colorScale`）、单元格内数据条（`dataBar`）和离群值（`top10`、`aboveAverage`），应优先使用条件格式而不是手工设置静态填充。这样，值发生变化时工作簿会自动更新。仅对标题行等固定结构使用静态 `fill`/`bold`。
 
-Limits: at most 10,000 rows per sheet, 256 columns per row, and 200,000 cells
-total. Charts, pivot tables, and images are **not** supported — present such
-analysis as additional sheets of data instead.
+限制：每个工作表最多 10,000 行，每行最多 256 列，总计最多 200,000 个单元格。图表、数据透视表和图片**不**受支持，请改用额外的数据工作表呈现此类分析。
 
-## How to design good spreadsheets
+## 如何设计好的电子表格
 
-- Give every sheet a bold, filled header row and set `"freezeRows": 1`.
-- Set `columns` widths so content is readable (text ~12–30, numbers ~10–14).
-- Use `numFmt` for money, percentages, and large numbers — never bake
-  formatting into strings (write `1250.5` with `"$#,##0.00"`, not `"$1,250.50"`).
-- Use formulas for totals and derived values, and always include `result` so
-  the preview shows the computed number.
-- Use `conditionalFormats` to make key numbers stand out — flag values over
-  budget with `cellIs`, heatmap a metric column with `colorScale`, add
-  `dataBar` to magnitude columns.
-- Split unrelated data across multiple sheets rather than one crowded sheet.
+- 给每张表一个加粗的填充标题行，并设置 '`"freezeRows": 1`'。
+- 设置 `columns` 的宽度以便内容可读（文本约 12–30，数字约 10–14）。
+- 使用 `numFmt` 格式化货币、百分比和大数字——绝不要直接嵌入格式化后的值。
+  格式化为字符串（将 `1250.5` 写作 `"$#,##0.00"`，而不是 `"$1,250.50"`）。
+- 使用公式计算总计和派生值，并始终包含 `result` ，以便
+  预览会显示计算结果。
+- 使用 `conditionalFormats` 使关键数字突出显示——标记超过
+  预算使用 `cellIs`，热图化一个指标列使用 `colorScale`，为数量级列添加 `dataBar`。
+- 将不相关的数据分布在多个工作表中，而不是一个拥挤的工作表。
 
-## Minimal example (`budget.xlsx.json`)
+## 最小示例 (`budget.xlsx.json`)
 
 ```json
 {

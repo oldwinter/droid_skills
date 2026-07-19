@@ -1,53 +1,53 @@
 ---
 name: simplify
-description: Review changed code for reuse, quality, and efficiency, then fix any issues found.
+description: 审查已更改的代码以实现重用、确保质量及提高效率，然后修复发现的问题。
 ---
 
-# Simplify: Code Review and Cleanup
+# 简化: 代码审查和清理
 
-Review all changed files for reuse, quality, and efficiency. Fix any issues found.
+审查所有更改的文件以实现重用、保证质量及提高效率。修复发现的所有问题。
 
-## Phase 1: Identify Changes
+## 阶段 1：识别变更
 
-Run `git diff` (or `git diff HEAD` if there are staged changes) to see what changed. If there are no git changes, review the most recently modified files that the user mentioned or that you edited earlier in this conversation.
+运行 `git diff`（如果有已暂存的更改，请使用 `git diff HEAD`）以查看有哪些更改。如果没有 Git 更改，请审查用户提到的或在本次对话中较早编辑的最近修改过的文件。
 
-## Phase 2: Launch Three Review Agents in Parallel
+## 阶段 2：并行启动三个审阅 agent
 
-Use the Task tool to launch all three agents concurrently in a single message. Pass each agent the full diff so it has the complete context.
+使用 Task 工具在同一条消息中并发启动所有三个 agent。将完整的 diff 传递给每个 agent，以便它有完整的上下文。
 
-### Agent 1: Code Reuse Review
+### agent 1: 代码重用审查
 
-For each change:
+对于每次更改：
 
-1. **Search for existing utilities and helpers** that could replace newly written code. Look for similar patterns elsewhere in the codebase — common locations are utility directories, shared modules, and files adjacent to the changed ones.
-2. **Flag any new function that duplicates existing functionality.** Suggest the existing function to use instead.
-3. **Flag any inline logic that could use an existing utility** — hand-rolled string manipulation, manual path handling, custom environment checks, ad-hoc type guards, and similar patterns are common candidates.
+1. **搜索现有的实用工具和辅助函数**以替换新编写的代码。在代码库的其他地方寻找类似的模式——常见的位置是实用工具目录、共享模块以及相邻的文件。
+2. **标记任何重复现有功能的新函数**，建议使用现有的函数代替。
+3. **标记任何可以利用现有实用工具的内联逻辑**——手写字符串操作、手动路径处理、自定义环境检查、临时类型保护等模式都是常见候选对象。
 
-### Agent 2: Code Quality Review
+### agent 2: 代码质量审查
 
-Review the same changes for hacky patterns:
+审查相同的更改以查找 hacky 模式：
 
-1. **Redundant state**: state that duplicates existing state, cached values that could be derived, observers/effects that could be direct calls
-2. **Parameter sprawl**: adding new parameters to a function instead of generalizing or restructuring existing ones
-3. **Copy-paste with slight variation**: near-duplicate code blocks that should be unified with a shared abstraction
-4. **Leaky abstractions**: exposing internal details that should be encapsulated, or breaking existing abstraction boundaries
-5. **Stringly-typed code**: using raw strings where constants, enums (string unions), or branded types already exist in the codebase
-6. **Unnecessary JSX nesting**: wrapper Boxes/elements that add no layout value — check if inner component props (flexShrink, alignItems, etc.) already provide the needed behavior
+1. **冗余状态**：重复现有状态的状态，可以推导出的缓存值，可以直接调用的观察者/效果
+2. **参数蔓延**：向函数添加新参数而不是泛化或重构现有的函数
+3. **复制粘贴略有变化**：应该通过共享抽象统一的近似代码块
+4. **泄露的抽象**：暴露本应封装的内部细节，或者打破现有抽象边界
+5. **字符串类型代码**：在代码库中已经存在常量、枚举（字符串联合）或品牌类型时，使用原始字符串
+6. **不必要的 JSX 嵌套**：添加布局价值的 wrapper 组件/元素——检查内部组件属性（flexShrink、alignItems 等）是否已提供所需的行为
 
-### Agent 3: Efficiency Review
+### agent 3: 效率审查
 
-Review the same changes for efficiency:
+再次审查相同的变化以提高效率:
 
-1. **Unnecessary work**: redundant computations, repeated file reads, duplicate network/API calls, N+1 patterns
-2. **Missed concurrency**: independent operations run sequentially when they could run in parallel
-3. **Hot-path bloat**: new blocking work added to startup or per-request/per-render hot paths
-4. **Recurring no-op updates**: state/store updates inside polling loops, intervals, or event handlers that fire unconditionally — add a change-detection guard so downstream consumers aren't notified when nothing changed. Also: if a wrapper function takes an updater/reducer callback, verify it honors same-reference returns (or whatever the "no change" signal is) — otherwise callers' early-return no-ops are silently defeated
-5. **Unnecessary existence checks**: pre-checking file/resource existence before operating (TOCTOU anti-pattern) — operate directly and handle the error
-6. **Memory**: unbounded data structures, missing cleanup, event listener leaks
-7. **Overly broad operations**: reading entire files when only a portion is needed, loading all items when filtering for one
+1. **多余的计算工作**：冗余计算、重复文件读取、重复网络/API 调用、N+1 模式
+2. **未充分利用的并发性**：独立操作按顺序执行而本可以并行执行
+3. **热点路径膨胀**：在启动或每次请求/渲染热路径中添加新的阻塞工作
+4. **周期性的空操作更新**：在轮询循环、间隔或事件处理程序中无条件地进行状态/存储更新——添加变更检测保护，以确保当没有变化时下游消费者不会收到通知。另外：如果包装函数接受更新/还原回调，请验证其是否尊重相同引用返回（或其他表示“未更改”的信号）——否则调用者的早期返回空操作将被静默击败
+5. **不必要的存在检查**：在操作之前预先检查文件/资源是否存在（TOCTOU 反模式）——直接进行操作并处理错误
+6. **内存问题**：无界数据结构、缺少清理、事件监听器泄漏
+7. **过于宽泛的操作**：当只需要部分内容时读取整个文件，当过滤一个项目时加载所有项
 
-## Phase 3: Fix Issues
+## 阶段 3：修复问题
 
-Wait for all three agents to complete. Aggregate their findings and fix each issue directly. If a finding is a false positive or not worth addressing, note it and move on — do not argue with the finding, just skip it.
+等待所有三个 agent 完成。汇总它们的发现并直接修复每个问题。如果发现是误报或不值得处理，请记录下来然后继续，不要争论发现结果，只需跳过它。
 
-When done, briefly summarize what was fixed (or confirm the code was already clean).
+完成后，简要总结已修复的内容（或确认代码本来就是干净的）。

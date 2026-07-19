@@ -2,21 +2,21 @@
 name: session-navigation
 version: 1.1.0
 description: |
-  Navigate, search, and manage Droid sessions. Use when the user wants to:
-  - List recent sessions
-  - Search session history for specific topics or patterns
-  - Resume a previous session
-  - Get details about what was accomplished in a session
-  - Find sessions by project, date, or content
+  导航、搜索和管理 Droid 会话。使用此功能时，用户可以：
+  - 列出最近的会话
+  - 在会话历史中搜索特定主题或模式
+  - 恢复之前的会话
+  - 获取会话中完成工作的详细信息
+  - 根据项目、日期或内容查找会话
 ---
 
-# Session navigation
+# 会话导航
 
-Find your way around past Droid sessions. Maybe you want to pick up where you left off, find that thing you did last week, or just see what's been happening in a project.
+探索过去的 Droid 会话。也许你想从上次中断的地方继续，找到上周做的那件事，或者只是看看某个项目的最新进展。
 
-## Where sessions live
+## 会话存放位置
 
-Sessions are in `~/.factory/sessions/`, organized by project folder. Each project gets its own directory with the path encoded (slashes become dashes):
+会话位于`~/.factory/sessions/`中，并按项目文件夹组织。每个项目都有自己的目录，路径中的斜杠会被替换为破折号：
 
 ```
 ~/.factory/sessions/
@@ -29,15 +29,15 @@ Sessions are in `~/.factory/sessions/`, organized by project folder. Each projec
 └── ...
 ```
 
-Two files per session:
+每个会话包含两个文件：
 
-**The conversation** (`.jsonl`): Each line is a JSON object. First line has metadata (session id, title, working directory). Rest is the back-and-forth: user messages, assistant responses, tool calls.
+**对话**（`.jsonl`）：每行都是一个 JSON 对象。第一行包含元数据（会话 ID、标题、工作目录），其余各行记录用户消息、助手回复和工具调用。
 
-**The settings** (`.settings.json`): Stats about the session. Which model, how long it ran, token counts, autonomy mode.
+**设置**（`.settings.json`）：会话统计信息，包括使用的模型、运行时长、token 数量和自主模式。
 
-## Finding sessions
+## 查找会话
 
-### List project folders
+### 列出项目文件夹
 
 ```bash
 # See all project folders with sessions
@@ -47,7 +47,7 @@ ls ~/.factory/sessions/
 ls ~/.factory/sessions/ | grep "myapp"
 ```
 
-### Recent sessions in a project
+### 查看项目的最近会话
 
 ```bash
 # List sessions by date for a project
@@ -60,7 +60,7 @@ for f in $(ls -t ~/.factory/sessions/-Users-enoreyes-code-work-myapp/*.jsonl | h
 done
 ```
 
-### Search by content
+### 按内容搜索
 
 ```bash
 # Search across ALL sessions
@@ -73,16 +73,16 @@ rg "bug fix" ~/.factory/sessions/-Users-enoreyes-code-work-myapp/
 rg -C 2 "login" ~/.factory/sessions/-Users-enoreyes-code-projects-api/
 ```
 
-### Find which project has sessions about something
+### 找到有关某个主题的项目会话
 
 ```bash
 # Which projects have sessions mentioning "redis"?
 rg -l "redis" ~/.factory/sessions/ | cut -d'/' -f1-5 | sort -u
 ```
 
-## Reading a session
+## 阅读会话
 
-Once you've found a session file:
+一旦找到了会话文件：
 
 ```bash
 # The metadata (title, working directory)
@@ -95,28 +95,24 @@ cat ~/.factory/sessions/-Users-enoreyes-code-work-myapp/<uuid>.settings.json | j
 wc -l ~/.factory/sessions/-Users-enoreyes-code-work-myapp/<uuid>.jsonl
 ```
 
-User messages have `"role": "user"`, assistant responses have `"role": "assistant"`. Tool calls show what commands ran and what files got touched.
+用户消息带有 `"role": "user"`，助手响应带有 `"role": "assistant"`。工具调用显示了运行的命令和被修改的文件。
 
-## Common situations
+## 常见情况
 
-**"What did I work on in this project?"**
-List that project's session folder, check dates, read through the conversation files.
+**"我在这个项目中做了什么？"** 列出该项目的会话文件夹，检查日期，阅读对话文件。
 
-**"Find that session where we fixed the login bug"**
-Search for "login" or "auth" across sessions. Once you find it, read the conversation.
+**"找到我们修复登录 bug 的那个会话"** 在各个会话中搜索“login”或“auth”。找到后，阅读对话内容。
 
-**"Resume what I was doing"**
-Find the session, read through what happened, summarize the key decisions before continuing.
+**"继续我之前的工作"** 找到相应的会话，阅读其中的内容，总结关键决策后再继续。
 
-**"How much have I been using Droid?"**
-The settings files have token counts and active time. Sum across sessions if needed.
+**"我使用 Droid 多久了？"** 设置文件中有 token 计数和活跃时间。如果需要，可以跨会话汇总。
 
-## Tips
+## 提示
 
-Use `rg` (ripgrep) instead of grep. It's faster and handles nested folders better.
+使用`rg`(ripgrep)代替 grep。它更快且能更好地处理嵌套文件夹。
 
-Project paths have slashes replaced with dashes. `/Users/me/code/app` becomes `-Users-me-code-app`.
+项目路径中的斜杠被替换为短横线。`/Users/me/code/app`变为`-Users-me-code-app`。
 
-The session title isn't always helpful. Sometimes you need to read the conversation to know what it was about.
+会话标题并不总是有帮助的。有时需要阅读对话内容才能知道它是关于什么的。
 
-Sessions can contain sensitive stuff. Be careful about what you surface.
+会话可能包含敏感信息。在展示时要小心。

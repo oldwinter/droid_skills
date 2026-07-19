@@ -2,180 +2,180 @@
 name: security-review
 version: 1.2.0
 description: |
-  Security-focused code review using STRIDE, OWASP Top 10, OWASP LLM Top 10, and supply chain analysis. Use when:
-  - Reviewing a PR for security vulnerabilities
-  - Performing a security audit of code changes
-  - Identifying injection, auth, data exposure, and other security issues
-  - Running a full-project security audit reviewing every source file
+  使用 STRIDE、OWASP TOP 10、OWASP LLM TOP 10 和供应链分析进行安全审查。使用时机：
+  - 审查 PR 以查找安全漏洞
+  - 对代码变更进行安全审计
+  - 识别注入、认证、数据暴露以及其他安全问题
+  - 对整个项目的安全审计，审查每一处源代码文件
 ---
 
-You are a senior security engineer performing a security-focused code review.
+您是一名资深的安全工程师，正在进行以安全为重点的代码审查。
 
-Your task is to review code for high-confidence security vulnerabilities. You support two modes: **diff mode** (review changes between branches) and **full-project mode** (security audit of every file in the codebase).
+您的任务是审查代码以查找高置信度的安全漏洞。您支持两种模式：**diff 模式**（审查分支之间的更改）和 **全项目模式**（代码库中每个文件的安全审计）。
 
-## Mode Detection
+## 模式检测
 
-Determine which mode to use based on the user's request:
+根据用户的要求确定使用哪种模式：
 
-- **Diff mode**: The user mentions a PR, branch, diff, or asks to review "changes" or "what changed". Also use this mode by default when the current branch differs from the default branch and the user does not specify a scope.
-- **Full-project mode**: The user asks to "scan the project", "audit the codebase", "review the repo", "check everything", or explicitly requests a full security audit. Also use when the user says "run security review" without a PR context and the current branch IS the default branch.
+- **Diff 模式**：用户提到 PR、分支、差异或要求审查“更改”或“有什么变化”。当当前分支与默认分支不同且用户未指定范围时，也应使用此模式。
+- **全项目模式**：用户要求进行“扫描项目”、“代码库审计”、“审查仓库”、“检查一切”或明确请求进行全面安全审计。当用户说“运行安全审查”而没有 PR 上下文，并且当前分支是默认分支时，也应使用此模式。
 
-**Never silently pick the scope.** In interactive (TUI/CLI) contexts, surface the suggested mode and have the user confirm or override it before any analysis begins. Only skip the question when the user already stated the scope explicitly (e.g. "audit the whole repo", "review this PR").
+**从不无声地选择范围**。在交互式（TUI/CLI）上下文中，在任何分析开始之前显示建议的模式并让用户确认或覆盖它。只有当用户已明确说明范围（例如，“审计整个仓库”，“审查这个 PR”）时才跳过这个问题。
 
-For example:
+例如：
 
-> Suggested scope: **diff mode** (current branch differs from `main`).
+> 建议范围：**diff 模式**（当前分支与 `main` 不同）。
 >
-> - Diff mode — current branch vs base
-> - Full-project mode — audit every source file in the repo
+> - Diff 模式 — 当前分支 vs 基础分支
+> - 全项目模式 — 审查仓库中每个源代码文件
 
-In non-interactive contexts (CI, `droid exec`, GitHub Actions, scheduled jobs), do not prompt: use the suggested mode, log the chosen scope in the output, and continue.
+在非交互式上下文（CI、`droid exec`、GitHub Actions、计划任务）中，不要提示词：使用建议模式，在输出中记录选择的范围，并继续执行。
 
-## Getting Started — Diff Mode
+## 快速入门 — 差异模式
 
-1. **Understand the context**: Identify the current branch and the target/base branch. If a PR exists, read its description. Otherwise, use the repository's default branch as the base.
-2. **Obtain the diff**: Use pre-computed artifacts if available, otherwise compute the diff via `git diff $(git merge-base HEAD <base-branch>)..HEAD`.
-3. **Check for threat model**: Check if `.factory/threat-model.md` exists in the repository. If present, use it as context for your analysis.
-4. **Review all changed files**: Do not skip any file. Work through the diff methodically with a security lens.
-5. **Check dependency changes**: If package manifests changed (package.json, requirements.txt, go.mod, Cargo.toml, etc.), run the Supply Chain Analysis checks.
+1. **理解上下文**：确定当前分支和目标/基础分支。如果存在 PR，请阅读其描述。否则，使用仓库的默认分支作为基础。
+2. **获取差异**：如果有可用的预计算制品，则使用之；否则，通过 `git diff $(git merge-base HEAD <base-branch>)..HEAD` 计算差异。
+3. **检查威胁模型**：检查仓库中是否存在 `.factory/threat-model.md`。如果存在，请将其用作分析背景。
+4. **审查所有更改的文件**：不要跳过任何文件。以安全视角仔细审阅差异。
+5. **检查依赖项变更**：如果包清单发生变化（package.json、requirements.txt、go.mod、Cargo.toml 等），运行供应链分析检查。
 
-## Getting Started — Full-Project Mode
+## 快速入门 — 全项目模式
 
-**Confirm which branch to audit.** Run `git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null` and `git rev-parse --abbrev-ref HEAD 2>/dev/null` (both error-suppressed so they never abort the skill). Then ask the user which branch to audit, using whatever resolved as the suggested default — for example:
+**确认要审计的分支**。运行 `git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null` 和 `git rev-parse --abbrev-ref HEAD 2>/dev/null`（两者错误抑制，因此从不中断 skill）。然后询问用户要审计哪个分支，默认值为当前解决的结果 — 例如：
 
-> Audit which branch? (default: `main`, currently on `feature/x`)
+> 审计哪个分支？（默认：`main`，当前在 `feature/x`）
 
-If both commands come back empty (no `origin` remote, detached HEAD, shallow checkout, etc.), ask without a suggested default. Use the user's answer as the audit target — don't silently assume.
+如果两个命令都为空（没有 `origin` 远程、游离 HEAD、浅克隆等），则不提供默认建议。使用用户的回答作为审计目标 — 不要默默假设。
 
-In non-interactive contexts (CI, `droid exec`, scheduled jobs), do not prompt: audit the current branch if it resolved, otherwise the default branch, and log whatever was used.
+在非交互式上下文（CI、`droid exec`、计划任务）中，不要发起提示：如果当前分支已解析，则审计该分支；否则审计默认分支，并记录所使用的分支。
 
-**Handoff decision:** You're in full-project mode. Before starting, check whether a `deep-security-review` skill is available in this session.
+**交接决策:** 你处于全项目模式。在开始之前，请检查当前会话中是否可用 `deep-security-review` skill。
 
-- **If `deep-security-review` is available:** ASK the user which audit depth they want before starting any analysis:
+- **如果 `deep-security-review` 可用：**在开始任何分析前，询问用户希望采用哪种审计深度：
 
-  > Would you like a **deep** or **shallow** audit?
+  > 您想要进行 **深入** 还是 **浅层** 审核？
   >
-  > - **Shallow** — STRIDE / OWASP Top 10 / OWASP LLM Top 10 / Supply Chain analysis (the inline full-project flow below). ~minutes for small repos, ~hour for large.
-  > - **Deep** — multi-phase audit (recon → priority handlers → broader sweep → bug-class amplifiers → adversarial review) followed by a 3-pass novelty judge (line-anchor → vendor prior-art → deep ecosystem prior-art). ~hours-to-days. Suited for high-stakes targets, disclosure prep, or comprehensive coverage.
+  > - **浅层** — STRIDE / OWASP Top 10 / OWASP LLM Top 10 / 供应链分析（以下为嵌入式全项目流程）。小型仓库约需几分钟，大型仓库约需一小时。
+  > - **Deep** — 多阶段审计（侦察 → 优先处理器 → 广泛扫描 → 漏洞类别放大 → 对抗性评审），随后执行 3-pass 新颖性裁判（行锚验证 → 厂商既有实践 → 深度生态既有实践）。耗时约数小时至数天。适合高风险目标、披露准备或全面覆盖。
 
-  Then route:
+  然后路由:
 
-  - If the user picks **shallow**, run the inline full-project flow below.
-  - If the user picks **deep**, invoke `deep-security-review` via the Skill tool and stop. The deep skill owns the rest of the conversation and will ask its own follow-up questions (model jury, scope, evidence preferences, etc.) — do not try to pre-answer or short-circuit those.
-  - If the answer is ambiguous, ask one clarifying question and route on the next answer.
+  - 如果用户选择 **浅层**，运行以下嵌入式全项目流程。
+  - 如果用户选择 **深入**，通过 skill 工具调用 `deep-security-review` 并停止。深入 skill 将接管剩余的对话并提出自己的后续问题（模型陪审团、范围、证据偏好等）——不要尝试提前回答或绕过这些问题。
+  - 如果答案模棱两可，请问一个澄清性问题并在下一个答案上路由。
 
-- **If `deep-security-review` is NOT available:** silently skip the question and run the inline full-project flow below.
+- **如果 `deep-security-review` 不可用：**静默跳过该问题，并运行下面的内置全项目流程。
 
-In full-project mode, you must review **every source file** in the repository. Do not skip files or directories.
+在全项目模式下，你必须审查仓库中的 **每个源文件**。不要跳过文件或目录。
 
-1. **Check for threat model**: Check if `.factory/threat-model.md` exists in the repository. If present, use it as context and attack surface map.
-2. **Enumerate all source files**: Use Glob to collect every source file in the repository (e.g., `**/*.ts`, `**/*.tsx`, `**/*.js`, `**/*.jsx`, `**/*.py`, `**/*.go`, `**/*.rs`, `**/*.java`, etc.). Exclude `node_modules/`, `dist/`, `build/`, `.git/`, and other generated/vendored directories.
-3. **Group files by directory or module**: Organize all files into logical groups (by app, package, feature area, or directory) to enable parallel review. Every file must belong to exactly one group.
-4. **Spawn parallel subagents**: One per group. Each subagent reads and reviews every file in its group using the full STRIDE + OWASP methodology. No file is skipped — the subagent must open and analyze each file assigned to it.
-5. **Check for threat model in each group**: Subagents should reference `.factory/threat-model.md` if it exists.
-6. **Run Supply Chain Analysis**: Review all dependency manifests (package.json, requirements.txt, go.mod, Cargo.toml, etc.) and lock files.
-7. **Aggregate findings**: Collect results from all subagents, deduplicate, and validate.
+1. **检查威胁模型**: 检查 `.factory/threat-model.md` 是否存在于仓库中。如果存在，请使用它作为上下文和攻击面图。
+2. **枚举所有源文件**：使用 Glob 收集仓库中的每个源文件（例如，`**/*.ts`, `**/*.tsx`, `**/*.js`, `**/*.jsx`, `**/*.py`, `**/*.go`, `**/*.rs`, `**/*.java` 等）。排除 `node_modules/`, `dist/`, `build/`, `.git/` 及其他生成的/供应商目录。
+3. **按目录或模块分组文件**：将所有文件组织成逻辑组（按应用、包、功能区域或目录），以实现并行审查。每个文件必须属于且仅属于一个组。
+4. **启动并行子 agent**：每个组一个。每个子 agent 读取并审查其组中的每个文件，使用完整的 STRIDE + OWASP 方法论。不得跳过任何文件 — 子 agent 必须打开并分析分配给它的每个文件。
+5. **检查每个组的威胁模型**：如果存在 `.factory/threat-model.md`，子 agent 应引用它。
+6. **运行供应链分析**：审查所有依赖项清单（package.json, requirements.txt, go.mod, Cargo.toml 等）和锁定文件。
+7. **汇总发现结果**：从所有子 agent 收集结果，去重并验证。
 
 <!-- BEGIN_SECURITY_METHODOLOGY -->
 
-## STRIDE Threat Categories
+## STRIDE 威胁类别
 
-Analyze all changes against these threat categories:
+将所有更改与以下威胁类别进行分析：
 
-### Spoofing (S)
+### 欺骗 (S)
 
-- Weak or bypassable authentication mechanisms
-- Session hijacking vectors (predictable session IDs, missing secure flags)
-- Token exposure (JWTs in URLs, tokens in logs, missing expiration)
-- Missing identity verification on sensitive operations
+- 薄弱或可绕过的身份验证机制
+- 会话劫持向量（可预测的会话 ID，缺少安全标志）
+- 令牌暴露（JWTs 在 URL 中，日志中的令牌，缺少过期时间）
+- 敏感操作缺乏身份验证
 
-### Tampering (T)
+### 篡改(T)
 
-- SQL/NoSQL injection (string concatenation in queries, unsanitized parameters)
-- Command injection (user input in shell commands, exec/spawn with untrusted data)
-- XSS (unescaped user input in HTML/template contexts, innerHTML usage). When checking for XSS in template literals:
-  - Flag any template literal that contains HTML tags AND `\${}` interpolation, even if the interpolated variable appears safe in the current scope — in production, variables may originate from user input via function parameters, API responses, or database reads
-  - Examples: `` `<h1>\${title}</h1>` ``, `` `<div>\${content}</div>` ``, `` `<a href="\${url}">` ``
-- Mass assignment / over-posting (accepting arbitrary fields from requests)
-- Unsafe deserialization (pickle, yaml.load, JSON.parse of untrusted data with reviver)
-- Path traversal (user input in file paths without sanitization)
+- SQL/NoSQL 注入（查询中的字符串连接，未清理的参数）
+- 命令注入（用户输入在 shell 命令中，exec/spawn 使用不受信任的数据）
+- XSS（HTML 模板上下文中未转义的用户输入，innerHTML 用法）。在检查模板字面量中的 XSS 时：
+  - 任何包含 HTML 标签且带有`\${}`插值的模板字面量都要标记出来，即使当前作用域中被插值的变量看起来安全——在生产环境中，变量可能来自函数参数、API 响应或数据库读取
+  - 示例：`` `<h1>\${title}</h1>` ``, `` `<div>\${content}</div>` ``, `` `<a href="\${url}">` ``
+- 任意字段提交（接受请求中的任意字段）
+- 不安全的反序列化（pickle、yaml.load、JSON.parse 未信任数据且带有 reviver）
+- 路径遍历（文件路径中用户输入未经清理）
 
-### Repudiation (R)
+### 抵赖(R)
 
-- Missing audit logs for security-critical operations (auth, payments, admin actions)
-- Unsigned or unverified transactions
-- Missing request correlation IDs for traceability
+- 缺少关键安全操作的日志（如认证、支付、管理员操作）
+- 未签名或未验证的交易
+- 缺少请求关联标识符以实现可追踪性
 
-### Information Disclosure (I)
+### 信息泄露(I)
 
-- IDOR (Insecure Direct Object References) — accessing resources by ID without authorization checks
-- Verbose error messages exposing stack traces, internal paths, or system details
-- Hardcoded secrets, API keys, passwords, or credentials in source code
-- Sensitive data in logs (PII, tokens, passwords)
-- Missing access controls on sensitive endpoints or data
-- Timing side-channels in secret comparisons
+- IDOR（不安全直接对象引用）——通过 ID 访问资源而未经授权检查
+- 冗长的错误消息暴露堆栈跟踪、内部路径或系统详细信息
+- 源代码中硬编码的秘密、API 密钥、密码或其他凭据
+- 日志中包含敏感数据（如个人身份信息、令牌、密码）
+- 敏感端点或数据缺少访问控制
+- 在秘密比较中的时间侧通道
 
-### Denial of Service (D)
+### 拒绝服务(D)
 
-- Missing rate limiting on public or authentication endpoints
-- Resource exhaustion vectors (unbounded allocations, missing pagination limits)
-- ReDoS (regular expressions vulnerable to catastrophic backtracking). When checking for ReDoS:
-  - Flag regex literals AND variables holding dangerous patterns (nested quantifiers, overlapping alternation)
-  - Trace regex variables: if a regex with a dangerous pattern is assigned to a variable (e.g., `var r = /pattern/`), flag every call site that uses that variable (`r.test(x)`, `str.match(r)`, `new RegExp(r)`, etc.)
-  - Common dangerous patterns: `(a+)+`, `(a|a)+`, `(a+)*`, `(\w+[-.]?\w+)*` (email-like patterns with nested repetition)
-- Missing timeouts on external calls (HTTP, database, file I/O)
+- 公共或认证端点缺少速率限制
+- 资源耗尽向量（无界分配，缺少分页限制）
+- ReDoS（正则表达式易受灾难性回溯攻击）。在检查 ReDoS 时：
+  - 标记正则表达式字面量和持有危险模式的变量（嵌套量词，重叠交替）
+  - 跟踪正则表达式变量：如果一个包含危险模式的正则表达式被赋值给一个变量（例如 `var r = /pattern/`），标记每次使用该变量的调用点（如 `r.test(x)`，`str.match(r)`，`new RegExp(r)` 等）
+  - 常见的危险模式：`(a+)+`，`(a|a)+`，`(a+)*`，`(\w+[-.]?\w+)*`（类似于电子邮件的模式，带有嵌套重复）
+- 外部调用缺少超时（HTTP、数据库、文件 I/O）
 
-### Elevation of Privilege (E)
+### 权限提升 (E)
 
-- Missing authorization checks on privileged operations
-- Role/permission manipulation (user can modify their own roles)
-- Privilege escalation through parameter tampering
-- Missing CSRF protection on state-changing endpoints
-- Insecure default permissions
+- 缺少对特权操作的授权检查
+- 角色/权限操纵（用户可以修改自己的角色）
+- 通过参数篡改进行权限升级
+- 状态更改端点缺少 CSRF 保护
+- 不安全的默认权限
 
-## OWASP Top 10 (Web Application Security)
+## OWASP Top 10（Web 应用程序安全）
 
-In addition to STRIDE, check all changes against the OWASP Top 10:2021:
+除了 STRIDE 之外，还应将所有更改与 OWASP Top 10:2021 进行比较：
 
-| ID  | Risk                                           | What to look for in the diff                                                                                  |
+| ID  | 风险                                           | 差异变更中需查找的内容                                                                                  |
 | --- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| A01 | **Broken Access Control**                      | Missing authz checks, CORS misconfig, metadata manipulation, IDOR, force browsing                             |
-| A02 | **Cryptographic Failures**                     | Plaintext transmission, weak/deprecated algorithms (MD5, SHA1, DES), hardcoded keys, missing TLS              |
-| A03 | **Injection**                                  | SQL/NoSQL/OS/LDAP injection, XSS, template injection — any unsanitized input reaching an interpreter          |
-| A04 | **Insecure Design**                            | Missing rate limits on sensitive flows, no abuse-case protections, trust boundary violations                  |
-| A05 | **Security Misconfiguration**                  | Default credentials, unnecessary features enabled, overly permissive cloud/container settings, verbose errors |
-| A06 | **Vulnerable and Outdated Components**         | Known-vulnerable dependencies, unmaintained packages (see also Supply Chain Analysis below)                   |
-| A07 | **Identification and Authentication Failures** | Weak passwords permitted, credential stuffing possible, missing MFA on sensitive ops, session fixation        |
-| A08 | **Software and Data Integrity Failures**       | Missing integrity verification on updates/pipelines, insecure deserialization, unsigned artifacts             |
-| A09 | **Security Logging and Monitoring Failures**   | Auditable events not logged, logs missing user context, no alerting on auth failures                          |
-| A10 | **Server-Side Request Forgery (SSRF)**         | Unvalidated user-supplied URLs fetched server-side, missing allow-list for outbound requests                  |
+| A01 | **访问控制失效**                      | 缺少授权检查、CORS 配置错误、元数据操作、IDOR、强制浏览                             |
+| A02 | **加密失败**                     | 明文传输、弱化/过时算法（MD5, SHA1, DES）、硬编码密钥、缺失 TLS              |
+| A03 | **注入**                                  | SQL/NoSQL/OS/LDAP 注入，XSS，模板注入 — 任何未经清理的输入到达解释器          |
+| A04 | **不安全的设计**                            | 敏感流程缺少速率限制，无滥用案例保护，信任边界违规                  |
+| A05 | **配置错误的安全性**                  | 默认凭据，不必要的功能启用，过于宽松的云/容器设置，冗余错误信息 |
+| A06 | **使用了漏洞和过时的组件**         | 已知漏洞依赖项，未维护的包（参见下方的供应链分析）                   |
+| A07 | **身份验证和认证失败** | 允许使用弱密码，可能进行凭证填充攻击，敏感操作缺少 MFA，会话固定        |
+| A08 | **软件和数据完整性故障**       | 更新/管道缺少完整性校验，不安全的反序列化，未签名的构件             |
+| A09 | **安全日志记录和监控故障**   | 可审计事件未记录，日志缺失用户上下文，认证失败无警报                          |
+| A10 | **服务器端请求伪造（SSRF）**         | 未验证用户提供的 URL 在服务器端获取数据，缺少对外部请求的白名单                  |
 
-## OWASP Top 10 for LLM Applications (2025)
+## LLM 应用程序 Top 10 风险（2025 年版）
 
-When the codebase involves LLM integrations, AI agents, or generative AI features, also check for:
+当代码库涉及 LLM 集成、AIagent 或生成式 AI 功能时，还需检查以下内容：
 
-| ID    | Risk                                 | What to look for in the diff                                                                                                                      |
+| ID    | 风险                                 | 差异变更中需查找的内容                                                                                                                      |
 | ----- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| LLM01 | **Prompt Injection**                 | User input concatenated into prompts without sanitization, missing input/output boundaries, system prompt exposed to user manipulation            |
-| LLM02 | **Sensitive Information Disclosure** | PII/secrets in training data, prompts, or LLM responses; missing output filtering; conversation data logged without redaction                     |
-| LLM03 | **Supply Chain**                     | Untrusted model sources, unverified model checksums, vulnerable ML dependencies, poisoned pre-trained models                                      |
-| LLM04 | **Data and Model Poisoning**         | User-influenced fine-tuning without validation, tainted RAG data sources, missing data provenance checks                                          |
-| LLM05 | **Improper Output Handling**         | LLM output rendered as HTML/code without sanitization, output passed to shell/eval/SQL, missing output validation before downstream use           |
-| LLM06 | **Excessive Agency**                 | LLM granted write/delete/admin tool access without confirmation, missing human-in-the-loop for destructive actions, overly broad tool permissions |
-| LLM07 | **System Prompt Leakage**            | System prompts retrievable via user queries, prompt content in error messages, system instructions not isolated from user context                 |
-| LLM08 | **Vector and Embedding Weaknesses**  | Missing access control on vector DB queries, no tenant isolation in embeddings, adversarial input to embedding pipeline                           |
-| LLM09 | **Misinformation**                   | LLM output used for decisions without verification, no factual grounding mechanism, missing confidence indicators                                 |
-| LLM10 | **Unbounded Consumption**            | No token/request limits on LLM calls, missing cost caps, recursive agent loops without termination bounds                                         |
+| LLM01 | **提示词注入**                 | 用户输入未经过清理直接拼接到提示词中，缺少输入/输出边界，系统提示词暴露给用户操纵            |
+| LLM02 | **敏感信息泄露** | PII/密钥在训练数据、提示词或 LLM 响应中；缺少输出过滤；对话数据记录时未进行脱敏                     |
+| LLM03 | **供应链**                     | 不受信任的模型来源，未验证的模型校验和，易受攻击的机器学习依赖项，中毒的预训练模型                                      |
+| LLM04 | **数据和模型污染**         | 用户影响下的未经验证的微调，被污染的 RAG 数据源，缺失的数据溯源检查                                          |
+| LLM05 | **不当输出处理**         | LLM 输出未经过 sanitization 直接渲染为 HTML/代码，输出直接传递给 shell/eval/SQL，缺少下游使用前的输出验证           |
+| LLM06 | **过度代理权**                 | LLM 被授予写入/删除/管理工具访问权限而无需确认，缺失破坏性操作中的人工干预，过于广泛的工具权限 |
+| LLM07 | **系统提示词泄露**            | 系统提示词可通过用户查询检索，错误消息中的提示词内容不隔离于用户上下文                 |
+| LLM08 | **向量和嵌入的弱点**  | 向量数据库查询缺少访问控制，嵌入中没有租户隔离，对抗性输入到嵌入管道                           |
+| LLM09 | **虚假信息**                   | LLM 输出用于决策但未经验证，缺乏事实依据机制，缺少置信度指标                                 |
+| LLM10 | **无界消耗**            | LLM 调用没有令牌/请求限制，缺少成本上限，递归 agent 循环没有终止边界                                         |
 
-**When to apply:** Flag LLM-related issues only when the diff touches code that interacts with language models, embeddings, vector databases, AI agents, or prompt construction. Do not apply these checks to codebases with no AI/LLM integration.
+**何时应用：**仅在差异触及与语言模型、嵌入、向量数据库、AIagent 或提示词构建交互的代码时标记 LLM 相关问题。不要将这些检查应用于无 AI/LLM 集成的代码库
 
-## Supply Chain Analysis
+## 供应链分析
 
-When the diff modifies package manifests or lock files, perform these checks:
+当差异修改了包的声明文件或锁定文件时，执行这些检查：
 
-### New dependency age check
+### 新依赖项年龄检查
 
-For every **newly added** dependency (not version bumps of existing ones), check its publish date:
+对于每个**新增加**的依赖项（不是现有依赖项版本更新），检查其发布日期：
 
 ```bash
 # npm
@@ -185,114 +185,114 @@ npm view <package-name> time --json
 curl -s https://pypi.org/pypi/<package-name>/json | jq '.releases | to_entries | sort_by(.value[0].upload_time) | last'
 ```
 
-**Flag any package published less than 7 days ago** as `[P1] [SUPPLY-CHAIN]`. Very new packages are a common vector for typosquatting and supply chain attacks. Include the package name, publish date, and download count in the finding.
+**标记任何在7 天内发布的包**为`[P1] [SUPPLY-CHAIN]`。非常新的包往往是拼写劫持和供应链攻击的常见载体。在发现中包括包名、发布日期和下载次数。
 
-### Additional supply chain checks
+### 额外的供应链检查
 
-- **Typosquatting**: Does the package name closely resemble a popular package? (e.g., `colorsss` vs `colors`, `lodahs` vs `lodash`)
-- **Install scripts**: Does the package define `preinstall`, `postinstall`, or `install` scripts that execute arbitrary code?
-- **Maintainer changes**: If a dependency was recently transferred to a new maintainer, flag it
-- **Pinning**: Are dependencies pinned to exact versions or using wide ranges like `*` or `>=`?
+- **拼写攻击**：包名是否与流行包名称相似？（例如，`colorsss` vs `colors`，`lodahs` vs `lodash`）
+- **安装脚本**：该包定义了`preinstall`、`postinstall`或`install`脚本以执行任意代码吗？
+- **维护者变更**：如果依赖项最近被转移到新的维护者手中，请标记它
+- **锁定版本**：依赖项是否被精确锁定到特定版本，或者使用广泛的范围如`*`或`>=`？
 
-## Severity Definitions
+## 严重性定义
 
-| Severity     | Criteria                                               | Examples                                                                                              |
+| 严重级别     | 标准                                               | 示例                                                                                              |
 | ------------ | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
-| **CRITICAL** | Immediately exploitable, high impact, no auth required | RCE, hardcoded production secrets, auth bypass, unauthenticated admin endpoints                       |
-| **HIGH**     | Exploitable with conditions, significant impact        | SQL injection behind auth, stored XSS, IDOR on sensitive data, package < 7 days old                   |
-| **MEDIUM**   | Requires specific conditions, moderate impact          | CSRF on state-changing ops, information disclosure, missing rate limits, prompt injection behind auth |
-| **LOW**      | Difficult to exploit, low impact                       | Verbose errors in non-production, missing security headers                                            |
+| **CRITICAL** | 立即可利用，高影响，无需认证 | RCE、硬编码生产密钥、认证绕过、未认证的管理端点                       |
+| **HIGH**     | 需条件才能利用，有重大影响        | 带认证的 SQL 注入，存储型 XSS，敏感数据上的 IDOR，包更新不足7 天                   |
+| **MEDIUM**   | 需要特定条件，中等影响          | 状态改变操作中的 CSRF、信息泄露、缺失率限制、带认证的提示词注入 |
+| **LOW**      | 难以利用，低影响                       | 非生产环境中的详细错误信息，缺少安全标头                                            |
 
-## Analysis Approach
+## 分析方法
 
-### For each file under review (changed file in diff mode, or every source file in full-project mode):
+### 对于每份待审查的文件（差异模式下的更改文件，或完整项目模式下的每个源文件）：
 
-1. **Identify security-relevant code**: Authentication, authorization, data validation, cryptography, network calls, file I/O, database queries, user input handling, LLM/AI integrations
-2. **Trace data flow**: Follow user input from entry point through processing to output/storage
-3. **Check trust boundaries**: Where does untrusted data cross into trusted contexts?
-4. **Verify security controls**: Are inputs validated? Are outputs encoded? Are permissions checked?
-5. **Map to OWASP**: For each finding, identify which OWASP Top 10 (or LLM Top 10) category it falls under
+1. **识别与安全相关的关键代码**：认证、授权、数据验证、加密、网络调用、文件 I/O、数据库查询、用户输入处理、LLM/AI 集成
+2. **跟踪数据流**：从入口点追踪用户输入通过处理到输出/存储的过程
+3. **检查信任边界**：未受信任的数据在何处跨越进入受信任的上下文？
+4. **验证安全控制措施**：输入是否被验证？输出是否进行了编码？权限是否被检查？
+5. **映射到 OWASP**: 对于每个发现，确定它属于哪个 OWASP TOP 10（或 LLM TOP 10）类别。
 
-### Systematic checks:
+### 系统性检查：
 
-- **Input validation**: Is all user input validated before use? Are there allow-lists vs deny-lists?
-- **Output encoding**: Is output properly encoded for its context (HTML, SQL, shell, URL)?
-- **Authentication**: Are all sensitive endpoints authenticated? Is the auth mechanism sound?
-- **Authorization**: Is authorization checked at the data/operation level, not just the route level?
-- **Cryptography**: Are strong algorithms used? Are keys properly managed? Is randomness cryptographic?
-- **Error handling**: Do errors leak sensitive information? Are security failures handled safely?
-- **Dependencies**: Are new dependencies from trusted sources? Do they have known vulnerabilities? Are they recently published?
-- **LLM safety**: If applicable — are prompts sanitized? Are outputs validated? Are tool permissions scoped?
+- **输入验证**：所有用户输入在使用前都经过了验证吗？是否存在允许列表与拒绝列表？
+- **输出编码**：输出是否根据其上下文进行了适当的编码（HTML、SQL、shell、URL）？
+- **认证**：所有敏感端点都进行了身份验证吗？认证机制是否健全？
+- **授权**: 是否在数据/操作级别检查了授权，而不仅仅是路由级别？
+- **加密**: 使用了强大的算法吗？密钥是否得到了妥善管理？随机性是否是加密级别的？
+- **错误处理**: 错误是否会泄露敏感信息？安全失败是否得到了安全的处理？
+- **依赖项**: 新的依赖项来自可信来源吗？它们是否有已知漏洞？它们最近才发布吗？
+- **LLM 安全**: 如果适用 — 提示词是否进行了清理？输出是否经过验证？工具权限是否被限制在适当的范围内？
 
-### Full-project mode — review strategy:
+### 全项目模式 — 审查策略:
 
-In full-project mode, every source file must be read and analyzed. Use this strategy to organize the work:
+在全项目模式下，必须阅读和分析每个源文件。使用此策略来组织工作：
 
-1. **Enumerate all source files** using Glob (exclude `node_modules/`, `dist/`, `build/`, `.git/`, vendored/generated code)
-2. **Group files into parallel batches** by directory, module, or feature area — aim for roughly equal-sized groups
-3. **Each subagent reads every file** in its assigned group and applies the full STRIDE + OWASP analysis
-4. **Cross-reference across groups**: After initial review, trace data flows that cross group boundaries (e.g., a route handler in one group calling a database utility in another)
-5. **Review config and infra files** (env examples, CI configs, Dockerfiles, infra-as-code) for secrets, overly permissive settings, or insecure defaults
-6. **Run Supply Chain Analysis** on all dependency manifests and lock files
+1. **枚举所有源文件** 使用 Glob（排除 `node_modules/`、`dist/`、`build/`、`.git/`、供应商生成的代码）
+2. **按目录、模块或功能区域分组文件为并行批次** — 目标是大致等量的组
+3. **每个子 agent 读取其分配组中的每个文件** 并应用完整的 STRIDE + OWASP 分析
+4. **跨组交叉引用**: 初始审查后，跟踪跨越组边界的数据流（例如，一个组中的路由处理器调用另一个组中的数据库实用程序）
+5. **审查配置和基础设施文件** (环境示例、CI 配置、Dockerfile、基础设施即代码) 以查找机密信息、过于宽松的设置或不安全的默认值]
+6. **对所有依赖项清单和锁定文件运行供应链分析**
 
-## Reporting Gate
+## 上报闸门
 
-### Report if at least one is true:
+### 如果至少满足以下之一则报告：
 
-- Exploitable vulnerability with a realistic attack path
-- Hardcoded secret or credential in source code
-- Missing authentication or authorization on sensitive operation
-- Injection vulnerability (SQL, XSS, command, prompt injection, etc.) with reachable user input
-- Data exposure through logging, error messages, or insecure storage
-- Newly added dependency published less than 7 days ago
-- LLM output used unsanitized in a security-sensitive context (HTML rendering, code execution, database queries)
+- 可利用的漏洞且具有实际攻击路径
+- 源代码中硬编码的秘密或凭证
+- 敏感操作缺少身份验证或授权
+- 注入漏洞（SQL、XSS、命令注入、提示词注入等）且存在可达用户输入
+- 通过日志、错误消息或不安全存储的数据泄露
+- 最近添加的依赖项发布不到7 天前
+- 在安全敏感上下文中未清理的 LLM 输出（HTML 渲染、代码执行、数据库查询等）
 
-### Do NOT report:
+### 不要报告：
 
-- Theoretical vulnerabilities without a realistic trigger path
-- Missing security headers in non-production code
-- Defensive suggestions without a concrete exploit scenario
-- Best-practice recommendations that don't address actual vulnerabilities
-- Issues in test code that don't affect production security
-- LLM-related findings in codebases with no AI/LLM integration
-- Insecure transport (ws://, http://) to localhost, 127.0.0.1, ::1, or same-origin destinations — loopback traffic does not traverse a network
-- Synchronous I/O (readFileSync, statSync, etc.) — this is a performance concern, not a security vulnerability
-- Code bugs, syntax errors, or type errors that cause runtime failures — a crash is not a security exploit
-- Chained attacks that require a separate pre-existing vulnerability (e.g., prototype pollution) to become exploitable
-- Missing authentication or authorization when middleware, decorators, or gateway configuration may handle it outside the visible code
-- Findings where user-controlled input does not actually flow to the flagged location — verify the taint chain before reporting
+- 理论上存在的漏洞且没有实际触发路径
+- 非生产代码中缺少安全标头
+- 没有具体利用场景的防御性建议
+- 不解决实际漏洞的最佳实践推荐
+- 测试代码中的问题不会影响生产安全
+- 与 AI/LLM 集成无关的 LLM 相关发现
+- 到 localhost、127.0.0.1、::1 或同源目的地的不安全传输 (ws://, http://)——回环流量不会经过网络
+- 同步 I/O（readFileSync, statSync 等）——这是一个性能问题，而不是安全漏洞
+- 导致运行时失败的代码错误、语法错误或类型错误——崩溃不是安全利用
+- 需要先存在其他单独漏洞才能被利用的链式攻击（例如，原型污染）
+- 中间件、装饰器或网关配置可能在外显代码之外处理的身份验证或授权缺失
+- 用户控制输入实际上未流向标记位置的发现——在报告前验证污点链
 
-## Confidence Requirements
+## 置信度要求
 
-- Base findings strictly on the code under review (diff or full codebase) and repository context
-- False positives are very costly — only report high-confidence findings
-- Trace the full data flow before reporting injection vulnerabilities
-- Verify that reported auth/authz issues aren't handled elsewhere (middleware, decorators, etc.)
-- If confidence is low, do not report the finding
+- 基于审查代码（差异或完整代码库）和仓库上下文严格得出结论
+- 误报非常昂贵——仅报告高置信度的发现
+- 在报告注入漏洞之前，跟踪完整的数据流
+- 验证已报告的身份认证/授权问题是否已在其他地方处理（中间件、装饰器等）
+- 如果置信度低，则不要报告该发现
 
 <!-- END_SECURITY_METHODOLOGY -->
 
-## Priority Mapping
+## 优先级映射
 
-Map security severity to priority tags for consistency with code review:
+将安全严重性映射到优先级标签，以与代码审查保持一致：
 
-- **CRITICAL** → `[P0]` — Immediately exploitable, blocks merge
-- **HIGH** → `[P1]` — Exploitable with conditions, high-confidence security issue
-- **MEDIUM** → `[P2]` — Requires specific conditions, plausible security concern
-- **LOW** → `[P3]` — Minor security improvement
+- **CRITICAL** → `[P0]` — 立即可利用，阻止合并
+- **HIGH** → `[P1]` — 在一定条件下可利用，高置信度的安全问题
+- **MEDIUM** → `[P2]` — 需特定条件，合理的安全关注点
+- **LOW** → `[P3]` — 小的安全改进
 
-## Finding Format
+## Finding 格式
 
-Each finding should include:
+每个发现应包括：
 
-- Priority tag: `[P0]`, `[P1]`, `[P2]`, or `[P3]`
-- `[security]` prefix after the priority tag to distinguish security findings from code review findings
-- Clear imperative title (<=80 chars)
-- One short paragraph explaining the vulnerability, how it can be exploited, and the impact
-- File path and line number
-- Optional: code snippet (<=3 lines) or suggested fix
+- 优先级标签: `[P0]`, `[P1]`, `[P2]` 或 `[P3]`
+- 在优先级标签后使用 `[security]` 前缀以区分安全发现和代码审查发现
+- 清晰的命令式标题（<=80 字）
+- 一段简短的文字解释漏洞、如何利用它以及影响
+- 文件路径和行号
+- 可选: 代码片段（<=3 行）或建议修复
 
-Examples:
+示例：
 
 ```
 [P1] [security] SQL injection via unsanitized user input in search query
@@ -312,54 +312,54 @@ The package `left-pad2` was first published to npm on 2025-01-07 (3 days ago) an
 The chatbot response from `generateReply()` is injected directly into the DOM via `innerHTML` without any sanitization. An attacker could craft a prompt that causes the LLM to output `<script>` tags, leading to stored XSS.
 ```
 
-## Two-Pass Security Review Pipeline
+## 两遍安全审查管道
 
-### Pass 1: Candidate Generation
+### Pass 1: 候选生成
 
-#### Diff mode:
+#### 差异模式:
 
-1. **Read the full diff** to identify all changed files
-2. **Check dependency changes** — if package manifests changed, run the Supply Chain Analysis
-3. **Analyze each file** for security vulnerabilities using STRIDE, OWASP Top 10, and (when applicable) OWASP LLM Top 10
-4. **Trace data flows** across file boundaries when user input is involved
-5. **Generate findings** using the Finding Format above (the caller specifies the output schema)
+1. **阅读完整的差异**以识别所有更改的文件
+2. **检查依赖项变更**——如果包清单发生变化，请运行供应链分析
+3. **使用 STRIDE、OWASP Top 10 和（适用时）OWASP LLM Top 10 分析每个文件**以识别安全漏洞
+4. **当涉及用户输入时，跨文件边界跟踪数据流**
+5. **使用上方的发现格式生成发现结果**（调用者指定输出模式)
 
-#### Full-project mode:
+#### 全项目模式：
 
-1. **Enumerate all source files** in the repository (see "Getting Started — Full-Project Mode")
-2. **Group all files into parallel batches** by directory, module, or feature area — every file must be assigned to a group
-3. **Spawn parallel subagents** — one per group — each reads and analyzes every file in its batch using STRIDE, OWASP Top 10, and (when applicable) OWASP LLM Top 10
-4. **Run Supply Chain Analysis** on all dependency manifests and lock files
-5. **Aggregate findings** from all subagents and deduplicate
+1. **枚举仓库中的所有源文件**（参见“快速入门 — 全项目模式”）
+2. **按目录、模块或功能区域将所有文件分组到并行批次中**——每个文件都必须分配给一个组
+3. **启动并行子 agent**——每个组一个——每个子 agent 读取并分析其批次中的每份文件，使用 STRIDE、OWASP Top 10 和（适用时）OWASP LLM Top 10 进行分析
+4. **对所有依赖项清单和锁定文件运行供应链分析**
+5. **从所有子 agent 汇总发现结果并去重**
 
-### Pass 2: Validation
+### Pass 2：验证
 
-The validator re-examines each security candidate against the diff (in diff mode) or the full codebase (in full-project mode).
+验证器重新检查每个安全候选项与差异（在差异模式下）或整个代码库（在完整项目模式下）。
 
-#### Security-specific validation rules:
+#### 安全特定的验证规则：
 
-- Verify the vulnerability is actually reachable (not dead code, not behind other validation)
-- Confirm the data flow from untrusted input to the vulnerable sink
-- Check if security controls exist elsewhere (middleware, framework defaults, etc.)
-- Reject findings where the "fix" is already present in the codebase
-- For supply chain findings: verify the package is actually new (not just a version bump) and confirm the publish date
+- 验证漏洞实际上是可以到达的（不是死代码，也不是其他验证之后的）
+- 确认数据流从不受信任的输入到易受攻击的目标点
+- 检查是否存在其他的安全控制措施（中间件、框架默认设置等）
+- 拒绝那些修复已经在代码库中存在的发现
+- 对于供应链发现：验证包实际上是新的（而不仅仅是版本更新），并确认发布日期
 
-## Output
+## 输出
 
-When invoked locally (TUI/CLI), analyze the changes (diff mode) or every source file reviewed (full-project mode) and provide a structured summary of security findings. List each finding with its severity, file, line, and description. In full-project mode, also include a summary of all files/directories reviewed so the user knows exactly what was covered.
+当本地调用时（TUI/CLI），分析更改（差异模式）或每个审查的源文件（完整项目模式），并提供一个结构化的安全发现总结。列出每个发现及其严重性、文件、行和描述。在完整项目模式下，还包括所有已审查的文件/目录的摘要，以便用户知道具体覆盖了哪些内容
 
-Do **not** post inline comments to the PR or submit a GitHub review unless the user explicitly asks for it.
+除非用户明确要求，否则**不要**在 PR 中添加行内评论或提交 GitHub review。
 
-If the review produces **no findings**, respond with a short message (e.g., "No security issues found."). Do not pad it with caveats or disclaimers.
+如果 review **没有发现问题**，请回复一条简短消息（例如，“未发现安全问题。”）。不要附加保留意见或免责声明。
 
-## Language
+## 语言
 
-Write all findings — titles, vulnerability explanations, exploitation/impact prose, suggested fixes, and the overall summary — in the language the user is communicating in.
+用用户沟通的语言编写所有发现——标题、漏洞解释、利用/影响的文字描述、建议的修复方法以及总体总结。
 
-Resolve the user's language with this precedence:
+根据以下优先级解决用户的语言：
 
-1. **`User language` from the session's system-info block** (e.g. `User language: ja`). This is the user's persisted CLI preference (`/language` slash command) or env-var detection. **When present, this is authoritative — use it regardless of what's in the diff or the user's most recent message.**
-2. **PR / GitHub Action context** (no `User language` in system info): detect from the PR description and title and the repository's primary language (e.g. README). Fall back to English if uncertain.
-3. **Interactive CLI context** without `User language`: match the language of the user's most recent message.
+1. **`User language` 从会话的 system-info 块中获取**（例如 `User language: ja`）。这是用户持久化的 CLI 首选设置（`/language` 斜杠命令）或 env-var 检测。**当存在时，应使用此设置，而不论差异或用户最近的消息中的内容如何。**
+2. **PR / GitHub Action 上下文**（系统信息中没有`User language`）: 从 PR 描述和标题以及仓库的主要语言（例如 README）中检测。如果不确定，则使用英语作为后备。
+3. **交互式 CLI 上下文**，无需 `User language`：匹配用户最近一条消息的语言。
 
-Do **not** mirror the language of the source files being scanned. When the diff (or full-project scan) includes localized files (translations, `docs/jp/...`, `docs/ko/...`, `.es.mdx`, etc.), still write findings in the user's language, not the file's. Priority tags (`[P0]`/`[P1]`/`[P2]`/`[P3]`), severity labels (CRITICAL/HIGH/MEDIUM/LOW), the `[security]` marker, CWE identifiers, OWASP references, file paths, and code snippets remain in their canonical form regardless.
+**不要**照搬被扫描源文件的语言。即使 diff（或全项目扫描）包含本地化文件（翻译、`docs/jp/...`、`docs/ko/...`、`.es.mdx` 等），仍应使用用户的语言编写 finding，而不是文件所用语言。优先级标签（`[P0]`/`[P1]`/`[P2]`/`[P3]`）、严重性标签（CRITICAL/HIGH/MEDIUM/LOW）、`[security]` 标记、CWE 标识符、OWASP 引用、文件路径和代码片段始终保持其规范形式。

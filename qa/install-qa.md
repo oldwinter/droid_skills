@@ -1,10 +1,10 @@
 ---
 name: install-qa
 description: >
-  Set up automated QA testing for this project. Performs deep codebase analysis,
-  asks targeted questions, and generates a modular QA skill with sub-skills per app,
-  a GitHub Actions workflow, and a report template. This is a complex, multi-phase
-  process -- quality assurance is foundational and we take the time to get it right.
+  为这个项目设置自动化质量测试。执行深入的代码库分析，
+  提出针对性的问题，并生成一个模块化的问答 skill，每个应用都有子 skill,
+  一个 GitHub 行动工作流，和一个报告模板。这是一项复杂、多阶段的工作。
+  过程 —— 质量保证是基础，我们花时间确保其正确无误。
 user-invocable: true
 ---
 
@@ -24,20 +24,20 @@ user-invocable: true
     ░░                                          ░░
     ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 
-> **⚠️ Complexity Warning:** This skill performs deep codebase analysis, runs a multi-phase
-> interactive questionnaire, and generates multiple files. It is a HIGH complexity task.
+> **⚠️ 复杂性警告：** 该 skill 执行深度代码库分析，运行多阶段
+> 交互式问卷调查，并生成多个文件。这是一个高复杂度的任务。
 
-# Install QA
+# 安装 QA
 
-Clear all previous plans and todos. Your previous task is complete. Your new task is to set up automated QA for this project.
+清除所有之前的计划和待办事项。你之前的任务已完成。你的新任务是为这个项目设置自动化质量检查。
 
-**Before starting, create a todo list from the phases below.**
+**在开始之前，请从以下阶段创建待办事项列表。**
 
-You are setting up a modular QA skill for this project. The skill will be used to run automated functional tests against the application -- driven by a real browser (agent-browser), TUI testing (tuistory), or API calls (curl) depending on the app type.
+您正在为该项目设置一个模块化的 QA skill。该 skill 将用于根据应用程序类型，通过实际浏览器（agent-browser）、TUI 测试（tuistory）或 API 调用（curl）运行自动化功能测试。
 
-## Output Structure
+## 输出结构
 
-You will generate skills at `.factory/skills/` with this structure:
+您将在 `.factory/skills/` 生成具有以下结构的 skill：
 
 ```
 .factory/skills/qa/
@@ -49,173 +49,170 @@ You will generate skills at `.factory/skills/` with this structure:
   SKILL.md                  # One sub-skill per testable app (e.g., qa-web, qa-cli, qa-backend)
 ```
 
-**Naming convention:** Sub-skills MUST be named `qa-<app-name>` (e.g., `qa-web`, `qa-cli`, `qa-backend`). Each is a standalone skill with its own `SKILL.md` frontmatter so the Factory skill system can discover and invoke them independently. The top-level `qa` skill orchestrates them.
+**命名约定：** 子 skill 必须命名为 `qa-<app-name>`（例如，`qa-web`, `qa-cli`, `qa-backend`）。每个都是一个独立的 skill，有自己的 `SKILL.md` 前置信息文件，以便 Factory skill 系统可以发现并独立调用它们。顶级的 `qa` skill 协调它们。
 
 ---
 
-# Phase 1: Check for Previous Progress
+# 阶段 1：检查先前进度
 
-Check if `.factory/skills/qa/.install-progress.yaml` exists. If it does:
+检查 `.factory/skills/qa/.install-progress.yaml` 是否存在。如果存在：
 
-1. Read it and show the user what was previously configured
-2. Ask if they want to keep previous answers as defaults or start completely fresh
-3. Either way, re-ask ALL categories (using previous answers as defaults if resuming) and regenerate ALL files. Never skip generation -- the user may give different answers or the generation rules may have changed.
-4. If starting fresh, delete the progress file and proceed from scratch
+1. 读取它并向用户展示之前配置的内容
+2. 询问他们是否希望保留之前的答案作为默认值或从头开始
+3. 无论哪种方式，重新询问所有类别（在恢复时使用之前的答案作为默认值），并重新生成所有文件。绝不要跳过生成步骤——用户可能会给出不同的答案或者生成规则可能已经改变。
+4. 如果从头开始，则删除进度文件并从头开始
 
 ---
 
-# Phase 2: Deep Codebase Analysis
+# 阶段 2：深入代码库分析
 
-Scan the repository thoroughly. You must AUTO-DETECT all of the following without asking the user. Present your findings as a summary before asking any questions.
+彻底扫描仓库。您必须自动检测以下内容而无需询问用户。在提问任何问题之前，以总结的形式呈现您的发现：
 
-## What to detect:
+## 需要检测的内容:
 
-### App Structure
+### 应用结构
 
-- Is this a monorepo? What apps exist? (look at top-level directories, workspace configs in package.json/pnpm-workspace.yaml/turbo.json)
-- For each app: what is it? (web frontend, API backend, CLI tool, mobile app, desktop app)
-- What path patterns map to each app?
+- 这是一个单体仓库吗？存在哪些应用？（查看顶层目录、package.json/pnpm-workspace.yaml/turbo.json 中的工作空间配置）
+- 对于每个应用：它是什么？（Web 前端、API 后端、命令行工具、移动应用、桌面应用）
+- 哪些路径模式映射到每个应用？
 
-### Tech Stack
+### 技术栈
 
-- Framework and language per app (package.json, Cargo.toml, go.mod, requirements.txt, etc.)
-- Build commands and dev server commands
+- 每个应用的框架和语言（package.json, Cargo.toml, go.mod, requirements.txt 等）
+- 构建命令和开发服务器命令
 
-### Authentication
+### 认证
 
-- How do users log in? (search for OAuth providers, auth middleware, login components, session management)
-- What auth library is used? (NextAuth, Passport, WorkOS, Auth0, Clerk, Firebase Auth, etc.)
+- 用户如何登录？（搜索 OAuth 提供者、认证中间件、登录组件、会话管理）
+- 使用哪种认证库？（NextAuth、Passport、WorkOS、Auth0、Clerk、Firebase Auth 等）
 
-### Environments
+### 环境
 
-- Find all environment URLs from: .env files, .env.example, config files, CI/CD workflows, deployment manifests, README
-- Find environment-specific configuration patterns
+- 从以下位置查找所有环境 URL：.env 文件、.env.example、配置文件、CI/CD 工作流、部署清单、README
+- 查找特定于环境的配置模式
 
-### Feature Flags
+### 特性标志
 
-- Search for imports of: LaunchDarkly, Statsig, Unleash, Split, Flagsmith, or custom feature flag patterns
-- How are flags evaluated in the code?
+- 搜索导入：LaunchDarkly、Statsig、Unleash、Split、Flagsmith 或自定义特性标志模式
+- 代码中是如何评估标志的？
 
-### External Integrations
+### 外部集成
 
-- Payment: Stripe, Braintree, PayPal (search dependencies + imports)
-- Email: SendGrid, SES, Postmark, Resend, AgentMail, Mailhog
-- SMS: Twilio, MessageBird
-- Other: search package.json dependencies for known SaaS SDKs
+- 支付：Stripe、Braintree、PayPal（搜索依赖项 + 导入）
+- 邮件：SendGrid、SES、Postmark、Resend、AgentMail、Mailhog
+- 短信：Twilio、MessageBird
+- 其他：在 package.json 依赖项中搜索已知的 SaaS SDK
 
 ### CI/CD
 
-- What CI provider? (.github/workflows, .gitlab-ci.yml, Jenkinsfile, .circleci)
-- Any existing QA or E2E test workflows?
+- 使用哪个持续集成提供商？（.github/workflows、.gitlab-ci.yml、Jenkinsfile、.circleci）
+- 是否有现有的质量保证或端到端测试工作流？
 
-### Existing Test Infrastructure
+### 现有测试基础设施
 
-- What test frameworks are used? (Vitest, Playwright, Cypress, pytest, etc.)
-- Any existing E2E or integration tests?
+- 使用了哪些测试框架？（Vitest, Playwright, Cypress, pytest 等）
+- 是否有现有的端到端或集成测试？
 
-### Critical User Flows
+### 关键用户流程
 
-- Analyze route definitions, navigation, page components to identify the main user flows
-- Look at: router config, page/view components, API endpoints, form submissions
+- 分析路由定义、导航和页面组件以识别主要用户流程
+- 查看：路由配置、页面/视图组件、API 端点、表单提交
 
-Present ALL findings to the user in a structured summary before proceeding to questions.
+在继续提问之前，向用户提供所有发现的结构化总结
 
 ---
 
-# Phase 3: Targeted Questionnaire
+# 阶段 3：有针对性的问题调查
 
-Ask ONLY what you could not auto-detect. Group questions using the AskUser tool. Save answers to `.factory/skills/qa/.install-progress.yaml` after each group is answered.
+仅询问您无法自动检测的内容。使用 AskUser 工具分组问题。在每个小组回答后将答案保存到`.factory/skills/qa/.install-progress.yaml`中
 
-**Important:** Always present your findings first, then ask for confirmation or gaps. Frame questions around what you found, not from scratch.
+**重要**：始终先呈现您的发现，然后请求确认或补充。围绕您找到的内容来构建问题，而不是从头开始
 
-## Category 1: Default QA Target
+## 类别 1：默认 QA 目标
 
-- "I found these environments: [list]. Which should QA run against by default?"
-- "Any restrictions on specific environments?" (e.g., "never create real users in prod")
+- "我找到了这些环境:[列表]。默认情况下，QA 应该运行在哪个环境中？"
+- "是否有特定环境的限制？"（例如，"不要在生产环境中创建真实用户"）
 
-Save progress after this category.
+保存此类别之前的进度。
 
-## Category 2: Personas & Roles
+## 类别 2：人物与角色
 
-Frame this carefully: "QA needs to test your app as different types of users. This ensures permissions work correctly -- an admin can manage settings, a regular member can do their work, and a read-only viewer truly cannot edit anything. Each persona represents a real user type."
+仔细构建这句话："QA 需要以不同类型的用户测试你的应用。这确保了权限正确工作——管理员可以管理设置，普通成员可以完成他们的工作，而只读查看者确实无法编辑任何内容。每个角色代表一种真实用户类型。"
 
-Ask:
+询问：
 
-- "What user roles exist in your app? For each role, I need:
-  (a) A short name (e.g., admin, member, viewer, guest)
-  (b) What they CAN do (key capabilities)
-  (c) What they should NOT be able to do (this becomes a negative test)
-  (d) Do you have a dedicated test account for this role? If so, what email?"
-- "For roles without test accounts, should QA create them via signup during the test run, or will you provide them?"
-- "Where are test credentials stored?" (env var name, AWS Secrets Manager key, HashiCorp Vault path, or they'll be entered manually)
+- "在您的应用中存在哪些用户角色？对于每个角色，我需要：
+  (a) 一个简短的名称（例如，admin、member、viewer、guest） (b) 他们能做什么（关键能力） (c) 他们不应该能够做什么（这将成为一个负向测试） (d) 您是否有专门用于此角色的测试账户？如果有，请提供邮箱地址？
+- "对于没有测试账号的角色，应该在测试运行期间通过注册创建它们，还是由你提供？"
+- "测试凭证存储在哪里？"（环境变量名称、AWS Secrets Manager 密钥、HashiCorp Vault 路径，或者手动输入）
 
-Save progress after this category.
+保存此类别之前的进度。
 
-## Category 3: Critical Flows (confirm + extend)
+## 类别 3：关键流程 (确认 + 延伸)
 
-- "Based on my analysis, these are the critical user flows I identified: [list]. Are these correct? Any to add or remove?"
-- "For each flow, what is the success criteria? (e.g., 'user sees dashboard after login', 'payment confirmation email received')"
-- "Should any flow be tested with multiple personas? (e.g., 'verify that viewers cannot access the admin settings page')"
-- "Do any flows create persistent data that needs cleanup after testing?"
-  Save progress after this category.
+- "根据我的分析，这些是我识别的关键用户流程：[列表]。这些正确吗？还需要添加或删除哪些？"
+- "对于每个工作流，成功的标准是什么？（例如，'用户登录后看到仪表盘'，'收到支付确认邮件'）"
+- "是否有流程需要使用多个用户角色进行测试？（例如，‘验证 viewer 无法访问管理员设置页面’）"
+- "任何流程在测试后创建了需要清理的持久化数据吗?"
+  保存此类别之前的进度。
 
-## Category 4: External Services (only if you detected integrations)
+## 类别 4：外部服务（仅在检测到集成时）
 
-For each detected integration:
+对于每个检测到的集成：
 
-- "I see [ServiceName] in your dependencies. Does it have a sandbox/test mode? What test credentials should QA use?"
-- For email: "How should QA receive test emails during signup/notification flows?" (Only ask if no AgentMail/Mailhog/test SMTP was detected)
+- "我在你的依赖项中看到了[ServiceName]。它有沙盒/测试模式吗？QA 应该使用哪些测试凭证？"
+- 对于邮件："在注册/通知流程中，QA 应该如何接收测试邮件？"（仅在未检测到 AgentMail/Mailhog/测试 SMTP 时询问）
 
-Save progress after this category.
+保存此类别之前的进度。
 
-## Category 5: Cleanup
+## 类别 5：清理
 
-- "After QA creates test users or data, how should it clean up?" Options:
-  - Delete via API endpoint (which one?)
-  - Admin panel cleanup
-  - Database reset command
-  - Leave for manual cleanup
-  - Not applicable (tests are read-only)
+- "在 QA 创建测试用户或数据之后，应该如何清理？" 选项:
+  - 通过 API 端点删除 (哪个？)
+  - 管理员面板清理
+  - 数据库重置命令
+  - 留给手动清理
+  - 不适用（测试是只读的）
 
-Save progress after this category.
+保存此类别之前的进度。
 
-## Category 6: ImageMagick
+## 类别 6: ImageMagick
 
-Check if ImageMagick is installed:
+检查是否安装了 ImageMagick:
 
 ```bash
 command -v magick || command -v convert
 ```
 
-- If already installed: set `imagemagick: true` in config.yaml, tell the user "ImageMagick detected -- QA will generate animated GIF diffs of before/after screenshots."
-- If NOT installed: ask "ImageMagick enables animated GIF diffs of before/after screenshots for visual regression testing. Would you like to install it?"
-  - If yes: run `brew install imagemagick` (macOS) or `sudo apt-get install -y imagemagick` (Linux), set `imagemagick: true`
-  - If no: set `imagemagick: false`
+- 如果已经安装: 在 config.yaml 中设置 `imagemagick: true`，告诉用户 "检测到 ImageMagick -- QA 将生成前后截图的动画 GIF 差异。"
+- 如果不安装: 询问 "ImageMagick 可以为视觉回归测试启用前后截图的动画 GIF 差异。您是否希望安装它？"
+  - 如果同意: 运行 `brew install imagemagick`（macOS）或 `sudo apt-get install -y imagemagick`（Linux），设置 `imagemagick: true`
+  - 如果否: 设置 `imagemagick: false`
 
-## Category 7: GitHub Action (only if .github/ directory exists)
+## 类别 7: GitHub Action (仅在 .github/ 目录存在时)
 
-- First, check if existing QA workflows already exist in `.github/workflows/`. If they do, list them.
-- "Would you like me to generate a GitHub Actions workflow that runs QA automatically on PRs?"
-- If yes, ask: "Should the QA check be **required** (blocks merge if it fails) or **optional** (runs but doesn't block merge)?"
-  - If required: no extra config needed (repo admins add it to branch protection rules)
-  - If optional: add a note in the generated workflow file that this check is informational only
-- If the project uses Vercel/Netlify preview deployments for PRs, ask: "I detected that PRs get a Vercel preview deployment. Should the QA workflow wait for the preview to be deployed before running tests?" (Default: yes)
+- 首先，检查 `.github/workflows/` 中是否已存在现有的 QA 工作流。如果有，请列出它们。
+- "您希望我生成一个自动在 PR 上运行 QA 的 GitHub Actions 工作流吗？"
+- 如果肯定: 询问 "QA 检查应该是 **必需的**（失败时阻止合并）还是 **可选的**（运行但不阻止合并）？"
+  - 如果是必需的: 不需要额外配置 (仓库管理员将其添加到分支保护规则中)
+  - 如果是可选的: 在生成的工作流文件中添加一个注释，说明此检查仅是信息性的
+- 如果项目使用 Vercel/Netlify 预览部署 PR, 询问 "我检测到 PR 获取了一个 Vercel 预览部署。QA 工作流是否应该在运行测试之前等待预览被部署？" (默认: 是)
 
-## Category 8: Failure Learning
+## 类别 8: 失败学习
 
-"When QA hits a new failure pattern (e.g., auth wall, missing env var, flaky element), how should it feed that back so future runs handle it better?"
+"当 QA 遇到新的失败模式（例如，认证墙、缺少环境变量、不稳定的元素）时，应该如何反馈以便未来的运行能够更好地处理它？"
 
-Present these options:
+提供这些选项:
 
-1. **Suggest in report (default)** -- The QA report includes a "Suggested Skill Updates" section with ready-to-copy markdown snippets that can be pasted into the sub-skill's Known Failure Modes section. The snippet is inside a collapsed `<details>` block with a clear label like "Copy this into qa-web/SKILL.md under Known Failure Modes".
-2. **Auto-commit** -- The agent directly commits updates to the sub-skill files after each run. Requires `contents: write` permission in the workflow.
-3. **Open a PR** -- The agent opens a PR with the failure catalog updates. Someone reviews and merges it.
+1. **建议在报告中**（默认）-- QA 报告包含一个“建议的 skill 更新”部分，其中包含可以直接复制粘贴到子 skill 已知失败模式部分的 markdown 摘要。摘要位于带有清晰标签如"将此内容粘贴到 qa-web/SKILL.md 的已知失败模式部分中"的折叠 `<details>` 块内。
+2. **Auto-commit** -- agent 直接在每次运行后将更新提交到子 skill 文件。需要工作流中的 `contents: write` 权限。
+3. **Open a PR** -- agent 打开一个包含失败目录更新的 PR。有人审查并合并它。
 
-Save the choice as `failure_learning` in config.yaml (values: `suggest_in_report`, `auto_commit`, `open_pr`).
+将选择保存为 `failure_learning` 在 config.yaml 中 (值: `suggest_in_report`, `auto_commit`, `open_pr`)。
 
-**Implementation per option:**
+**每种选项的实现:**
 
-For `suggest_in_report`: The orchestrator SKILL.md must instruct the agent to append a "Suggested Skill Updates" section to the report whenever a BLOCKED or FAIL result reveals a new failure pattern not already in the sub-skill's Known Failure Modes. The suggestion must include the exact markdown to add, the target file path, and where to insert it. Example:
+对于 `suggest_in_report`: 调度器 SKILL.md 必须指示 agent 在每次运行结果为 BLOCKED 或 FAIL 且揭示了新的失败模式不在子 skill 已知失败模式中时，向报告添加一个“建议的 skill 更新”部分。建议必须包括要添加的确切 markdown、目标文件路径以及插入位置。示例:
 
 ```markdown
 ### Suggested Skill Updates
@@ -296,11 +293,11 @@ cleanup:
 failure_learning: <suggest_in_report|auto_commit|open_pr>
 ```
 
-**Environment behavior for preview deployments:** If the project uses Vercel/Netlify preview deployments, the config MUST document that preview URLs behave like the dev environment (same backend, same database, same API keys). The orchestrator and sub-skills should use dev-environment flows (e.g., Stripe test cards, dev API keys) when testing against a preview URL. Do NOT generate separate prod/preprod QA flows that run against preview URLs -- they will fail because preview backends don't have prod data (voucher codes, production Stripe keys, etc.).
+**环境行为对于预发布部署:** 如果项目使用 Vercel/Netlify 预发布部署，则配置文档必须说明预览 URL 的行为类似于开发环境（相同的后端，相同的数据库，相同的 API 密钥）。在测试预览 URL 时，调度器和子 skill 应使用开发环境流程 (例如，Stripe 测试卡、开发 API 密钥)。不要生成单独的生产/预生产 QA 流程来针对预发布 URL 运行它们——因为预发布后端没有生产数据（优惠券代码、生产 Stripe 密钥等），它们会失败。
 
-## 4b. SKILL.md (Orchestrator)
+## 4b. SKILL.md（编排器）
 
-Generate `.factory/skills/qa/SKILL.md`. This is the main orchestrator that gets loaded into context. It must be LIGHTWEIGHT -- it should NOT contain the actual test flows (those live in separate `qa-<app-name>` sub-skills). It should:
+生成 `.factory/skills/qa/SKILL.md`。这是主要的调度器，会被加载到上下文中。它必须是轻量级的——不应包含实际的测试流程（这些在单独的 `qa-<app-name>` 子 skill 中）。它应该:
 
 ````markdown
 ---
@@ -516,49 +513,49 @@ description: >
 ```
 ````
 
-Each sub-skill should contain:
+每个子 skill 应包含:
 
-- App-specific configuration notes (e.g., "chat input is a contenteditable div")
-- A **menu of available test flows** -- these are NOT a checklist. The orchestrator picks only the flows relevant to the current diff. Label each flow clearly so the orchestrator can match it to changed code.
-- Per-persona test variations
-- Error handling specific to that app
-- Known UI quirks or workarounds
+- 特定于应用的配置说明（例如，“chat input 是一个 contenteditable div”）
+- 一个 **可用测试流程的菜单** —— 这些不是检查列表。协调器只会选择与当前差异相关的流程。请清晰地标记每个流程，以便协调器能够将其匹配到更改的代码中。
+- 每个人的个性测试变体
+- 特定于该应用的错误处理
+- 已知的 UI 小问题或变通办法
 
-### Web/frontend app testing in CI (MANDATORY for web apps)
+### 在 CI 中进行 Web/前端应用测试（对于 Web 应用是强制性的）
 
-Web app sub-skills MUST include a "Testing Target" section that tells the agent how to get a URL with the branch's actual code. Based on what you detected in Phase 2:
+Web 应用子 skill 必须包括一个“测试目标”部分，告诉 agent 如何获取带有分支实际代码的 URL。根据你在阶段 2 检测到的内容：
 
-**If the repo uses Vercel/Netlify preview deployments:** The sub-skill should instruct the agent to:
+**如果仓库使用 Vercel/Netlify 预发布部署：** 子 skill 应指示 agent 执行以下操作：
 
-1. Use the preview URL passed by the workflow (via env var or prompt) -- do NOT re-resolve it
-2. If a Vercel bypass secret is needed, apply it on the first request
-3. If no preview URL was provided, report ALL web tests as BLOCKED: "No Vercel preview URL available -- cannot verify branch code." Do NOT fall back to dev/staging/prod URLs -- those deployments run different code than the PR branch and testing against them produces meaningless results.
+1. 使用工作流传递的预览 URL（通过环境变量或提示词）-- 请勿重新解析它
+2. 如果需要 Vercel 跳过密钥，请在第一个请求中应用它
+3. 如果没有提供预览 URL，请将所有 Web 测试报告为 BLOCKED: "没有 Vercel 预览 URL 可用——无法验证分支代码。" 不要回退到 dev/staging/prod URLs —— 这些部署运行的是不同于 PR 分支的代码，针对它们进行测试会产生无意义的结果。
 
-**If the repo does NOT use preview deployments:** The sub-skill should instruct the agent to:
+**如果仓库不使用预览部署：** 子 skill 应指示 agent 执行以下操作：
 
-1. Start the dev server locally (include the exact command, e.g., `npm run dev:web`)
-2. Poll localhost until ready
-3. Use localhost as the base URL
+1. 在本地启动开发服务器（包括确切的命令，例如 `npm run dev:web`）
+2. 直到本地主机就绪时才进行轮询
+3. 以 localhost 作为基础 URL
 
-**CRITICAL:** The sub-skill MUST NEVER fall back to a remote environment (dev, staging, prod) when testing a PR branch. Remote environments run different code -- testing against them tells you nothing about the PR's changes. Either use the preview URL or start a local dev server. If neither is available, report BLOCKED.
+**关键:** 在测试 PR 分支时，子 skill 绝不能回退到远程环境（开发、预发布、生产）。远程环境运行的是不同的代码——与它们进行测试并不能告诉你 PR 的更改情况。要么使用预览 URL，要么启动本地开发服务器。如果两者都不可用，请报告为 BLOCKED.
 
-### Authentication in CI
+### CI 中的认证
 
-Sub-skills that require authentication MUST document which env vars provide auth and how to use them. The sub-skill should note:
+需要认证的子 skill 必须记录提供认证所需的哪些环境变量以及如何使用这些变量。子 skill 应注明以下内容：
 
-- Which env vars are needed for this app (API keys, tokens, credentials)
-- That these are provided by the CI workflow via GitHub secrets -- the agent does NOT need to log in interactively
-- How the app consumes the credentials (env var auto-pickup, CLI flag, config file, etc.)
+- 此应用所需的所有环境变量（API 密钥、令牌、凭据）
+- 这些环境变量通过 GitHub 秘密由 CI 工作流提供——agent 不需要进行交互式登录
+- 应用程序如何消费这些凭据（环境变量自动拾取、命令行标志、配置文件等）
 
-The specific secret names come from what you discovered in Phase 2 (codebase analysis). Use whatever auth mechanism the project already uses -- do NOT hardcode Factory-specific patterns.
+具体的 secret 名称来自阶段 2（代码库分析）中发现的内容。使用项目已有的认证机制，不要硬编码 Factory 特定的模式。
 
-Structure each module like the existing automated-qa-dev/automated-qa-prod skills -- with detailed, battle-tested steps that handle edge cases (locale variations, loading delays, iframe issues, etc.).
+每个模块都应像现有的 automated-qa-dev/automated-qa-prod skill 一样结构化——包含详细的、经过实战检验的步骤，以处理边缘情况（区域变体、加载延迟、iframe 问题等）
 
-IMPORTANT: Each sub-skill is self-contained. It should include everything needed to test that app without referencing other sub-skills. The orchestrator SKILL.md loads only the relevant sub-skill(s).
+重要: 每个子 skill 都是独立的。它应该包括测试该应用所需的一切内容，而不引用其他子 skill。协调者 SKILL.md 只加载相关的子 skill.
 
-### CLI/TUI testing with tuistory (MANDATORY for CLI apps)
+### 使用 tuistory 进行 CLI/TUI 测试（对于 CLI 应用是强制要求）
 
-For CLI/TUI apps, the generated sub-skill MUST require **interactive TUI testing** -- building the binary, launching it via tuistory, sending real keystrokes, and verifying actual terminal output. Running unit tests or `droid exec` alone is NOT sufficient QA testing. The sub-skill must instruct the agent to **use the `droid-control` skill for all tuistory interactions**. The droid-control skill contains the complete, correct tuistory API reference. Do NOT write raw tuistory commands in the sub-skill -- instead write instructions like:
+对于 CLI/TUI 应用，生成的子 skill 必须要求进行**交互式 TUI 测试**：构建二进制文件，通过 tuistory 启动它，发送真实按键，并验证实际终端输出。仅运行单元测试或 `droid exec` 不足以完成 QA。子 skill 必须指示 agent **使用 `droid-control` skill 完成所有 tuistory 交互**。droid-control skill 包含完整且正确的 tuistory API 参考。不要在子 skill 中编写原始 tuistory 命令，而应写成类似下面的指令：
 
 ```
 Use the `droid-control` skill for all tuistory interactions.
@@ -569,16 +566,16 @@ Use the `droid-control` skill for all tuistory interactions.
 4. Take a screenshot for evidence
 ```
 
-The app module should describe WHAT to test (launch CLI, type "/help", verify output), not HOW to call tuistory. The droid-control skill handles the HOW.
+应用模块应描述要测试什么（启动 CLI、输入“/help”、验证输出），而不是如何调用 tuistory。droid-control skill 负责具体方法。
 
-Additional CI notes for the app module:
+额外的 CI 说明对于应用模块：
 
-- In CI, prefix launch with `env -u CI FACTORY_DISABLE_KEYRING=true` to avoid Ink CI detection
-- Use session name `-s qa-test` with `--cols 110 --rows 36`
+- 在 CI 中，使用`env -u CI FACTORY_DISABLE_KEYRING=true`前缀启动以避免 Ink CI 检测
+- 使用会话名称`-s qa-test`和`--cols 110 --rows 36`
 
 ## 4d. REPORT-TEMPLATE.md
 
-Generate `.factory/skills/qa/REPORT-TEMPLATE.md`:
+生成`.factory/skills/qa/REPORT-TEMPLATE.md`:
 
 ```markdown
 ## QA Report
@@ -605,69 +602,68 @@ Result values: :white_check_mark: PASS, :x: FAIL, :no_entry: BLOCKED, :warning: 
 </details>
 ```
 
-## 4f. Failure Handling
+## 4f. 失败处理
 
-The generated SKILL.md must include this rule: **"Never silently skip a flow. If a flow cannot complete, report it as BLOCKED with what was tried and how the user can fix it."**
+生成的 SKILL.md 必须包含以下规则：**“绝不能静默跳过流程。如果某个流程无法完成，请将其报告为 BLOCKED，并说明已尝试的操作以及用户应如何修复。”**
 
-Each app module should include a "Known Failure Modes" section at the bottom, populated with app-specific quirks discovered during the codebase scan.
+每个应用模块应在底部包含一个“已知失败模式”部分，其中填充在代码扫描期间发现的应用特定的怪癖。
 
-## 4e. GitHub Actions Workflow (only if user said yes in Category 7)
+## 4e. GitHub Actions 工作流（仅当用户在类别7 中回答是时）
 
-### Replace existing QA workflows
+### 替换现有的 QA 工作流
 
-First, check for any existing QA-related workflows in `.github/workflows/` (e.g., `cli-qa-droid-exec.yml`, `automated-qa-prod.yml`, `automated-qa-dev.yml`). The new unified `qa.yml` replaces ALL of them. Delete or rename the old workflows and note this in the verification summary so the user can review.
+首先，在`.github/workflows/`中检查任何现有的与 QA 相关的 工作流（例如，`cli-qa-droid-exec.yml`，`automated-qa-prod.yml`，`automated-qa-dev.yml`）。新的统一的`qa.yml`将取代所有这些。删除或重命名旧的工作流，并在验证总结中记录这一点，以便用户可以审查。
 
-### Generate `.github/workflows/qa.yml` following these patterns:
+### 生成`.github/workflows/qa.yml`，遵循以下模式：
 
-**Triggers:**
+**触发器：**
 
-- If the project uses preview deployments AND the user said to wait for them: use `workflow_run` trigger that runs AFTER deployment workflows complete. During codebase analysis, identify ALL deployment workflows that produce preview URLs (frontend and backend may deploy separately). The QA workflow must wait for all of them so that all preview environments are ready before testing. Example:
+- 如果项目使用预览部署并且用户要求等待它们，请使用在部署工作流完成后运行的`workflow_run`触发器。在代码库分析期间，识别所有产生预览 URL 的部署工作流（前端和后端可能独立部署）。QA 工作流必须等待所有这些工作流完成，以便在测试之前所有预览环境都准备好。示例：
   ```yaml
   on:
     workflow_run:
       workflows: ['<deploy-frontend-workflow>', '<deploy-backend-workflow>'] # list ALL deploy workflows found
       types: [completed]
   ```
-  If any deployment fails, QA should still run but report the affected app's tests as BLOCKED.
-  The workflow should extract preview URLs from PR comments (look for deployment bot comments with marker patterns).
-- Also include `pull_request` trigger as a fallback (for when `workflow_run` doesn't fire from non-default branches)
-- `workflow_dispatch` -- allows manual trigger
+  如果任何部署失败，QA 仍然应该运行，但报告受影响的应用程序的测试为阻塞状态。该工作流应从 PR 评论中提取预览 URL（查找带有标记模式的部署机器人评论）。
+- 还应包含`pull_request`触发器作为备用选项（当`workflow_run`未从非默认分支触发时）
+- `workflow_dispatch` — 允许手动触发
 
-**Multiple preview deployments:** Some projects deploy frontend and backend separately, each with their own preview URL. During codebase analysis, check if the project has multiple deployment workflows that run on PRs. If so:
+**多个预览部署：** 一些项目独立地部署前端和后端，每个都有自己的预览 URL。在代码库分析期间，检查项目是否有在 PR 上运行的多个部署工作流。如果有：
 
-- Identify how each preview URL is derived (PR comment markers, branch-name-based URL patterns, deployment output)
-- The QA workflow must wait for ALL deployments before testing
-- Each app's sub-skill should document how to resolve its preview URL
-- The backend sub-skill should test against the backend's preview URL (not a shared dev backend) when the backend also gets per-PR deployments
+- 确定每个预览 URL 是如何生成的（PR 评论标记、基于分支名的 URL 模式、部署输出）
+- QA 工作流必须等待所有部署完成后再进行测试
+- 每个应用程序的子 skill 应记录如何解决其预览 URL
+- 后端子 skill 应在后端也获得每 PR 部署时，测试其预览 URL（不是共享的开发后端）
 
-**Core steps (in this exact order):**
+**核心步骤（按此确切顺序）：**
 
-1. Checkout with `fetch-depth: 0` (needed for git diff analysis)
-2. If using preview deployments: extract the preview URL from the triggering workflow or PR comments
-3. Install ImageMagick if config says imagemagick: true (`sudo apt-get install -y -qq imagemagick`)
-4. Setup Node.js (`actions/setup-node@v4` with node-version 22) -- required for tuistory and other Node-based tools
-5. Install test tools based on detected app types:
-   - If CLI app exists (test_tool: tuistory): `npm install -g tuistory`
-   - If the CLI app has a build_command that needs dependencies: run `npm install` (or the project's package manager install) before the QA step so the CLI binary can be built
-   - If web app exists (test_tool: agent-browser): agent-browser is built into droid, no extra install needed
-6. Install droid CLI: `curl -fsSL https://app.factory.ai/cli | sh`
-7. Run QA: `droid exec --auto high` with the qa skill, passing these CI-mode instructions in the prompt:
-   - "You are running in a non-interactive CI environment. There is NO human available."
-   - "Do NOT use AskUser, do NOT wait for confirmations, do NOT pause for input."
-   - "Run the qa skill. Write the final report to qa-results/report.md"
-8. **(Only if `failure_learning` is `auto_commit` or `open_pr`)** Apply skill updates from JSON. Add a step that:
+1. 使用 `fetch-depth: 0` 进行检出（用于 git diff 分析所需）
+2. 如果使用预览部署：从触发的工作流或 PR 评论中提取预览 URL
+3. 如果配置文件中说 imagemagick: true，则安装 ImageMagick (`sudo apt-get install -y -qq imagemagick`)
+4. 设置 Node.js (`actions/setup-node@v4`，node-version 22) —— 对于 tuistory 和其他基于 Node 的工具所需
+5. 根据检测到的应用类型安装测试工具：
+   - 如果存在 CLI 应用（test_tool: tuistory）：`npm install -g tuistory`
+   - 如果 CLI 应用有需要依赖项的 build_command：在 QA 步骤之前运行 `npm install` (或项目的包管理器 install)，以便可以构建 CLI 二进制文件
+   - 如果存在 Web 应用（test_tool: agent-browser）：agent-browser 已内置在 droid 中，无需额外安装
+6. 安装 droid CLI：`curl -fsSL https://app.factory.ai/cli | sh`
+7. 运行 QA：使用 `droid exec --auto high` 命令并传递这些 CI 模式的指令作为提示词：
+   - "你正在运行在一个非交互式持续集成环境中。没有可用的人类用户。"
+   - "不要使用 AskUser，不要等待确认，不要暂停以获取输入。"
+   - "运行 qaskill。将最终报告写入 qa-results/report.md"
+8. **(只有在 `failure_learning` 是 `auto_commit` 或 `open_pr` 时）** 应用来自 JSON 的 skill 更新。添加一个步骤：
 
-   - Runs the `apply-qa-skill-updates` script from `apps/scripts/`:
+   - 从 `apply-qa-skill-updates` 运行 `apps/scripts/` 脚本：
      ```yaml
      - name: Apply skill updates from QA
        if: always() && steps.qa.outcome != 'cancelled'
        run: npx tsx apps/scripts/src/apply-qa-skill-updates/index.ts qa-results/skill-updates.json
      ```
-   - For `auto_commit`: commit and push to the PR branch
-   - For `open_pr`: create a new branch, commit, and open a draft PR targeting the PR branch
-   - See the examples in the `auto_commit`/`open_pr` blocks below
+   - 对于 `auto_commit`：提交并推送到 PR 分支
+   - 对于 `open_pr`：创建新分支，提交更改，并打开一个针对 PR 分支的草稿 PR。
+   - 参见下面 `auto_commit`/`open_pr` 块中的示例
 
-   **`auto_commit` commit step:**
+   **`auto_commit` 提交步骤：**
 
    ```yaml
    - name: Commit skill updates
@@ -681,7 +677,7 @@ First, check for any existing QA-related workflows in `.github/workflows/` (e.g.
        git push origin HEAD:\${{ steps.pr.outputs.ref }}
    ```
 
-   **`open_pr` commit + PR step:**
+   **`open_pr` 提交 + PR 步骤：**
 
    ```yaml
    - name: Open PR with skill updates
@@ -702,49 +698,48 @@ First, check for any existing QA-related workflows in `.github/workflows/` (e.g.
          --body "Auto-generated from QA run on PR #\${{ steps.pr.outputs.number }}." --draft
    ```
 
-9. Upload artifacts (screenshots, GIFs, report, skill-updates.json) via `actions/upload-artifact@v4` with 14-day retention
-10. Post/update PR comment with the report (see PR comment section below)
+9. 上传制品（屏幕截图、GIF、报告、skill-updates.json）通过 `actions/upload-artifact@v4`，保留期限为14 天
+10. 在 PR 备注中发布/更新报告（参见下方的 PR 备注部分）
 
-**Environment variables the workflow must pass to the QA step:**
+**工作流必须传递给 QA 步骤的环境变量：**
 
-- All secrets identified from config.yaml `credentials_source` fields and auth configuration
-- `CI: true`: so the skill knows to run autonomously
-- Use the secret names discovered during codebase analysis -- do NOT hardcode project-specific names
+- 所有从 config.yaml `credentials_source` 字段和认证配置中识别出的秘密
+- `CI: true`: 以便 skill 知道自主运行
+- 使用代码库分析中发现的秘密名称 -- 不要硬编码项目特定的名称
 
-**PR comment posting:**
-In the "Post QA report as PR comment" step:
+**PR 评论发布：** 在"发布 QA 报告作为 PR 评论"步骤中:
 
-- Read `qa-results/report.md` if it exists; otherwise wrap `qa-output.txt` in a details block as fallback
-- Ensure the report always starts with `## QA Report` heading (add it if the report file doesn't include one)
-- The report already contains inline text snapshots (fenced code blocks) as evidence -- no image upload/embedding needed
-- Append a footer with artifact download link and workflow run link
-- Include a hidden HTML marker at the top of the comment body: `<!-- qa-report -->`
-- Before posting, search existing PR comments for one starting with `<!-- qa-report -->`. If found, UPDATE that comment (PATCH) instead of creating a new one. Only create a new comment if no existing QA comment exists.
-- This ensures each PR has exactly ONE QA comment that gets updated on each push, not a flood of comments.
-- Upload any image files (screenshots, GIFs) as build artifacts only -- do NOT try to embed them inline in the PR comment
+- 如果存在 `qa-results/report.md`，则读取它；否则将 `qa-output.txt` 包裹在一个 details 块中作为备选
+- 确保报告始终以 `## QA Report` 标题开头（如果没有包含该标题，则添加它）
+- 报告已经包含了内联文本快照（围栏代码块）作为证据 -- 不需要上传/嵌入图片
+- 在评论底部追加一个带有附件下载链接和工作流运行链接的尾注
+- 在评论主体顶部插入隐藏 HTML 标记：`<!-- qa-report -->`
+- 发布前，在现有 PR 评论中搜索以 `<!-- qa-report -->` 开始的一个。如果找到，则更新该评论（PATCH）而不是创建一个新的。只有在没有现有 QA 评论时才创建新的评论
+- 这确保每个 PR 恰好只有一个 QA 评论，并且每次推送都会更新，不会出现大量评论
+- 上传任何图像文件（屏幕截图、GIF）仅作为构建产物 -- 不要在 PR 备注中尝试嵌入它们
 
-**Reliability:**
+**可靠性**:
 
-- Use proper concurrency groups keyed on the PR number (handle both `pull_request` and `workflow_run` event shapes) with cancel-in-progress
-- Set job timeout (20-25 minutes) and QA step timeout (15-20 minutes)
-- Use `continue-on-error: true` on the QA step so the report always gets posted even on failure
-- Use the runner type from existing workflows in this repo (check `.github/workflows/` for the runner label)
+- 使用基于 PR 号的适当并发组（处理 `pull_request` 和 `workflow_run` 事件形状），并启用正在进行中的取消操作
+- 设置作业超时时间（20-25 分钟）和 QA 步骤超时时间（15-20 分钟）
+- 在 QA 步骤中使用 `continue-on-error: true`，以便即使在失败时报告始终会被发布
+- 从现有工作流中使用此仓库中的 runner 类型（检查 `.github/workflows/` 目录以获取 runner 标签）
 
-### Self-testing property
+### 自测试属性
 
-The QA skill tests the application itself. When changes are made to the QA skill files (`.factory/skills/qa/**`) but no app code changed, the diff analysis will detect this and report INCONCLUSIVE -- no app flows will run since no app was affected.
+QA skill 会测试应用程序本身。当对 QA skill 文件（`.factory/skills/qa/**`）进行更改但未修改应用代码时，差异分析将检测到这一点并报告 INCONCLUSIVE -- 由于没有受影响的应用程序流程将运行，因此不会执行任何应用流程。
 
 ---
 
-# Phase 5: Verification
+# 阶段 5：验证
 
-After generating all files:
+生成所有文件后:
 
-1. Show the user a summary of what was generated
-2. List all files created with a brief description of each
-3. Suggest: "You can test this by running /qa to invoke the skill, or by opening a PR to trigger the GitHub Action (if generated)."
+1. 向用户展示所生成内容的摘要
+2. 列出所有创建的文件及其简要描述
+3. 建议："你可以通过运行 /qa 来调用 skill 进行测试，或者通过打开一个 PR 触发 GitHub 行动（如果已生成）。"
 
-**IMPORTANT -- GitHub Secrets Setup (FAC-17916):** 4. If a GitHub Actions workflow was generated, you MUST prompt the user to add the required secrets to their GitHub repository. Analyze the generated workflow and config.yaml to compile the EXACT list of secrets needed. Present it as a checklist:
+**重要 -- GitHub 密钥设置 (FAC-17916):** 4. 如果生成了 GitHub Actions 工作流，请务必提示词用户在他们的 GitHub 仓库中添加所需的密钥。分析生成的工作流和 config.yaml 来编译 EXACT 需要的密钥列表。将其作为检查清单呈现:
 
 ```
 The QA workflow needs these GitHub repository secrets to work in CI:
@@ -756,16 +751,16 @@ The QA workflow needs these GitHub repository secrets to work in CI:
 Add them at: https://github.com/<owner>/<repo>/settings/secrets/actions
 ```
 
-Dynamically populate this list by reading the generated workflow and config.yaml. List EVERY secret referenced in the workflow's `env:` block and explain what each one does and where to obtain it. Do NOT hardcode project-specific secret names in the prompt -- discover them from what was generated.
+根据生成的工作流和 config.yaml 动态填充此列表。列出工作流 `env:` 块中引用的所有密钥，并解释每个密钥的作用以及如何获取它们。不要在提示词中硬编码项目特定的密钥名称 -- 从生成的内容中发现它们。
 
-5. Remind them about any other manual setup needed (e.g., test accounts, API access, environment allowlists)
+5. 提醒他们任何其他手动设置的需求（例如，测试账户、API 访问权限、环境白名单）
 
 ---
 
-# Important Guidelines
+# 重要指南
 
-- NEVER store actual credentials, passwords, API keys, or tokens in any generated file. Only store references to where they are (env var names, secret manager paths).
-- The orchestrator SKILL.md must be lightweight. The app modules contain the detailed test steps.
-- Save progress to .install-progress.yaml after EVERY questionnaire category so the user can resume if interrupted.
-- If the user says "start over" at any point, delete .install-progress.yaml and restart from Phase 2.
-- ALWAYS regenerate ALL files from scratch based on the questionnaire answers and codebase analysis, even if files already exist. Overwrite them. The user may have changed their answers or the generation rules may have been updated.
+- 绝不能在生成的文件中存储真实凭据、密码、API 密钥或 token。只能记录其位置（env 变量名或密钥管理路径）。
+- 协调器 SKILL.md 必须轻量级。应用模块包含详细的测试步骤。
+- 每次完成问卷类别后，保存进度到 .install-progress.yaml 文件，以便用户在中断时可以恢复。
+- 如果用户在任何时间点说“重新开始”，删除 .install-progress.yaml 并从阶段 2 重新开始。
+- 根据问卷答案和代码库分析始终从头生成所有文件，即使这些文件已经存在也是如此。覆盖它们。用户可能已更改他们的答案或生成规则可能已被更新。

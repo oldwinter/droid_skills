@@ -1,60 +1,60 @@
 ---
 name: mission-planning
-description: Guides the orchestrator through the planning phase with the user.
+description: 引导调度器在规划阶段与用户一起进行规划。
 ---
 
-# Mission Planning
+# 任务规划
 
-This skill guides you through the planning phase.
+此 skill 将引导您完成规划阶段。
 
-## Phase 1: Understand & Plan (DYNAMIC, ITERATIVE)
+## 阶段 1: 理解与计划（动态、迭代）
 
-This is the most important phase. Your goal is to arrive at a deep, comprehensive understanding of: what we're building, how it works architecturally, where complexity lives, what user-facing surfaces exist, and what the approach should be.
+这是最重要的阶段。您的目标是达到对以下内容的深刻而全面的理解：我们正在构建什么，从架构上如何工作，复杂性在哪里存在，面向用户的功能表面是什么，以及应该采取的方法是什么。
 
-**Start by asking the user** enough questions to build shared understanding of what we're building and what matters — so that all subsequent investigation has direction. Ask as many as make sense in one go. Don't start investigating until these are answered.
+**首先向用户提问**足够的问题以建立共同理解我们正在构建的内容和哪些方面最重要——以便后续的所有调查都有方向。一次问尽可能多的问题。在这些问题回答完毕之前不要开始调查。
 
-**Then interleave these activities as needed** — the problem dictates the path:
-- **Investigate** the codebase and technologies via subagents. Delegate deep investigation — code reading, flow tracing, module analysis, operational discovery. You handle structural overview (READMEs, configs, directory layouts) and synthesize subagent reports.
-- **Research** technologies where your training knowledge may be insufficient. Follow the Online Research guidelines — delegate to subagents.
-- **Identify testing surfaces** — where behavior can be tested through user-facing boundaries (browser UI, CLI, API). Delegate architectural analysis to subagents when assessing this.
-- **Think through the approach** — how will this be built, what are the boundaries, where will workers need the most guidance? For any deep thinking or thorough analysis, delegate to subagents.
-- **Ask again** if investigation reveals new ambiguities.
+**然后根据需要交错进行这些活动** — 问题决定了路径：
+- **调查**代码库和技术，通过子 agent。委派深入调查 — 代码阅读、流程跟踪、模块分析、操作发现。你处理结构概述（READMEs、配置文件、目录布局）并综合子 agent 报告。
+- **研究**你的训练知识可能不足的技术。遵循在线研究指南 — 委派给子 agent。
+- **识别测试表面** — 在用户界面（浏览器 UI）、命令行接口（CLI）、API 等面向用户的边界处进行行为测试。评估时委派子 agent 进行架构分析。
+- **思考方法** — 这将如何构建，界限在哪里，哪些部分需要最多指导？对于任何深入思考或彻底的分析，委派给子 agent。
+- **如果调查揭示了新的模糊性，请再次询问**。
 
-**Always delegate deep investigation and deep thinking to subagents.** Your context window is finite — preserve it for orchestration, synthesis, and user interaction. When you need thorough analysis of any aspect (architectural decomposition, surface identification, technology assessment, edge case enumeration), spawn a subagent.
+**始终将深入调查和深入思考委派给子 agent。**你的上下文窗口是有限的 — 保留它用于编排、综合和用户交互。当你需要对任何方面（架构分解、表面识别、技术评估、边缘案例枚举）进行彻底分析时，启动一个子 agent。
 
-### Iterative Exploration Loop
+### 迭代探索循环
 
-Planning is not a single pass of investigation followed by a proposal. After each round of investigation, explicitly enumerate what you still don't know and assess which unknowns matter most. For each high-importance unknown, either investigate via subagent or ask the user. Then re-assess — did exploration surface new unknowns? Keep going until nothing important is left unexplored.
+规划不是一次调查后跟上提案的过程。每次调查后，明确列出你仍然不知道的内容，并评估哪些未知事项最重要。对于每个高优先级的未知事项，要么通过子 agent 调查，要么询问用户。然后重新评估 — 探索是否揭示了新的未知事项？继续进行直到没有重要的未探索内容为止。
 
-Continue until you can answer these questions about every part of the system you're building:
-- What does it do?
-- What are its boundaries?
-- Where does complexity concentrate?
-- How would an independent party verify it works?
+继续进行，直到你可以回答关于你要构建系统的每一部分的问题：
+- 它做什么？
+- 它的边界是什么？
+- 复杂性集中在何处？
+- 独立第三方如何验证其是否正常工作？
 
-If you can't answer these, you don't understand the problem well enough yet. Keep investigating.
+如果你不能回答这些问题，你还没有充分理解这个问题。继续调查。
 
-Only move forward when you have a clear, deep picture of what success looks like.
+只有在你对成功的样子有清晰而深刻的理解时才能前进。
 
-## Phase 2: Architectural Design & Decomposition
+## 阶段 2：架构设计与分解
 
-Design the system to fulfill all user requirements. Delegate deep architectural analysis to subagents if needed.
+设计系统以满足所有用户需求。如果需要，将深入的架构分析委派给子 agent。
 
-Present the design to the user and get explicit confirmation before proceeding.
+向用户提供设计方案，并在继续之前获得明确确认。
 
-Take care to ensure this design is robust and well thought-out. This is the blueprint for the entire mission.
+务必确保此设计是稳健且深思熟虑的。这是整个任务的蓝图。
 
-## Phase 3: Infrastructure & Boundaries
+## 阶段 3：基础设施与边界
 
-Determine what infrastructure is needed:
-- What services? (databases, caches, queues, etc.)
-- What processes? (API server, web frontend, workers, etc.)
-- What ports will each need?
-- Any external APIs or resources?
+确定所需的基础架构：
+- 哪些服务？（数据库、缓存、队列等）
+- 哪些进程？（API 服务器、Web 前端、工作者等）
+- 每个需要什么端口？
+- 是否有任何外部 API 或资源？
 
-**IMPORTANT: Proactively check what's already running.**
+**重要：主动检查已运行的内容。**
 
-e.g.
+例如
 ```bash
 # Check listening ports
 lsof -i -P -n | grep LISTEN
@@ -68,13 +68,13 @@ ps aux | grep -E 'node|python|java' | grep -v grep
 etc.
 ```
 
-Analyze the output to:
-- Identify ports already in use (avoid conflicts)
-- Find existing services you can reuse (e.g., existing postgres on 5432)
-- Discover processes that might conflict with your mission
-- Note any ports/directories that should be off-limits
+分析输出以:
+- 识别已使用的端口（避免冲突）
+- 找到可以重用的现有服务（例如，现有的 5432 上的 postgres）
+- 发现可能与你任务冲突的过程
+- 记录任何应禁止访问的端口/目录
 
-Present needed infrastructure and how they fit with the user's setup:
+呈现所需的基础架构及其如何适应用户的设置:
 
 ```
 This mission will need:
@@ -85,202 +85,202 @@ This mission will need:
 Does this setup work for you?
 ```
 
-**You need explicit user confirmation to proceed.**
+**您需要用户的明确确认才能继续。**”
 
-## Phase 4: Set Up Credentials & Accounts (INTERACTIVE)
+## 阶段 4：设置凭据及账户（交互式）
 
-If the mission involves any external dependencies (APIs, databases, auth providers, third-party SDKs), you must set up real credentials and connections so the mission can be validated end-to-end. This is not optional — the default is real integration, not mocks.
+如果任务涉及任何外部依赖（API、数据库、认证提供者、第三方 SDK），必须设置真实凭证和连接，以便可以端到端验证任务。这不可选 — 默认是真实集成，而不是模拟。
 
-For greenfield projects, this likely means all credentials and accounts. For existing codebases, investigate what's already configured and only set up what's missing.
+对于绿地项目，这意味着所有凭证和账户。对于现有代码库，调查已配置的内容，并仅设置缺失的部分。
 
-If new credentials/accounts are needed:
-1. If they don't already exist, initialize any needed configuration files first (e.g., `.env` files with variable names and placeholder values), so the user has somewhere to put them.
-2. Guide the user through the specific steps to create any needed accounts and generate credentials, providing clear instructions and links.
+如果需要新的凭证/账户：
+1. 如果没有现成的，请首先初始化任何所需的配置文件（例如，`.env` 文件中带有变量名和占位符值），以便用户可以放置它们。
+2. 引导用户通过具体的步骤创建任何所需账户并生成凭证，提供清晰的说明和链接。
 
-**CRITICAL: During this step, we must set up everything such that the mission can be validated end-to-end with real integrations.** Workers must be able to test against real APIs, real databases, real auth flows. If a feature streams from an LLM API, the real API key must be configured. If a feature processes payments, a real sandbox/test-mode key must be configured. The validation contract will include assertions that exercise these real integration paths.
+**关键：在这一阶段，我们必须设置一切内容，使得任务可以通过真实集成端到端验证。** 工作者必须能够测试真实的 API、真实的数据库、真实的认证流程。如果功能来自 LLM API，则必须配置真实 API 密钥。如果功能处理支付，则必须配置真实沙盒/测试模式密钥。验证合同将包括针对这些真实集成路径的断言。
 
-The user may explicitly choose to defer specific credentials (e.g., "use mocks for now", "I'll add Stripe keys later"). Respect this, but note it in the mission proposal so workers know what's unavailable and which end-to-end assertions are deferred. This is an explicit user opt-out — never silently default to mocks.
+用户可以明确选择推迟特定凭证（例如，“现在使用模拟”，“稍后添加 Stripe 密钥”）。尊重这一点，但在任务提案中注明，以便工作者知道哪些不可用以及哪些端到端断言被推迟。这是显式的用户退出 — 从不无声默认为模拟。
 
-Only skip this phase if the mission genuinely has no external credential or account dependencies.
+仅在任务确实没有外部凭证或账户依赖时跳过此阶段。
 
-Ensure that you don't commit any secrets or sensitive information. Add these files to `.gitignore`.
+确保不要提交任何机密信息或敏感数据。将这些文件添加到`.gitignore`中。
 
-The mission readiness check (Phase 6) will actively verify that these credentials and integrations work by exercising the real APIs/services. Do not assume credentials are valid just because they were configured here.
+任务准备检查（第6 阶段）将积极验证这些凭据和集成是否有效，通过实际练习真实 API/服务来执行。不要仅仅因为在这里配置了凭据就假设它们是有效的。
 
-## Phase 5: Testing & Validation Strategy
+## 阶段 5：测试与验证策略
 
-Use subagents to investigate testing infrastructure and plan the validation strategy. For existing codebases, discover established patterns and conventions. For greenfield, determine what testing infrastructure and validation tooling the mission needs. If the mission's technologies have specific testing patterns or libraries that you don't know by heart (e.g., Convex test helpers, Supabase local dev), reference your online research findings or do targeted follow-up research. Always delegate deep investigation to subagents.
+使用子 agent 调查测试基础设施并规划验证策略。对于现有的代码库，发现已有的模式和惯例；对于全新的项目（greenfield），确定任务所需的测试基础设施和验证工具。如果任务的技术有特定的测试模式或库（例如，Convex 测试助手、Supabase 本地开发环境）而你并不熟悉这些内容，请参考你的在线研究结果或进行有针对性的研究跟进。始终将深入调查委派给子 agent。
 
-### Testing Infrastructure
+### 测试基础设施
 
-Consider whether the mission needs dedicated testing features beyond per-worker TDD:
-- Shared test fixtures, seed data, or factories that multiple features depend on
-- E2e tests for critical user flows (especially in existing codebases that already have e2e coverage)
-- Integration test setup (e.g., test database configuration, mock services)
+考虑任务是否需要超出每个工作者 TDD 的专用测试功能：
+- 多个特性依赖的共享测试固定数据、种子数据或工厂
+- 关键用户流程的端到端测试（特别是在已有端到端覆盖的现有代码库中）
+- 集成测试设置（例如，测试数据库配置、模拟服务）
 
-### Programmatic Validation Plan
+### 程序化验证计划
 
-Decide what programmatic validators run at the milestone gate (scrutiny) and what scoping guidance workers will follow. This determines the `commands.test`, `commands.typecheck`, and `commands.lint` entries in `services.yaml`. Running the full test suite in a large monorepo, for example, is often too slow and heavy.
+决定在里程碑门限（scrutiny）阶段运行哪些程序化验证器，并确定工作者遵循的范围指导。这决定了`commands.test`中的`commands.typecheck`、`commands.lint`和`services.yaml`条目。例如，在大型单体仓库中运行完整的测试套件通常会过于缓慢且占用资源过多。
 
-Then propose to the user, in plain prose:
-- **Milestone gate (run by scrutiny):** the exact `commands.test`, `commands.typecheck`, `commands.lint` you'll put in `services.yaml`. These should be broad enough to catch cross-feature regressions but feasible to run on every milestone — if the full suite is prohibitive, use a curated scope (e.g., changed packages, the area the mission touches). These commands will be run verbatim by the per-milestone scrutiny validator.
-- **Worker-level scoping guidance:** rough guidance on how workers should scope these same commands before handoff (e.g., "typecheck and lint at the package level; test scoped to the area changed using `--testPathPattern` or equivalent").
+然后以平实的语言向用户提出建议：
+- **里程碑门限（由审查执行）：**具体的 `commands.test`, `commands.typecheck`, `commands.lint` 将被放入 `services.yaml` 中。这些命令应该足够广泛以捕捉跨功能的回归问题，但又能在每次里程碑中运行——如果完整的测试套件过于庞大，则可以使用精选范围（例如，更改过的包、任务触及的区域）。这些命令将由里程碑审查验证器原样执行。
+- **工人级别范围指导：**在移交前，工人应如何对这些相同命令进行粗略范围划分的指导建议（例如，“按包层级进行类型检查和代码审查；测试则针对变更区域使用 `--testPathPattern` 或等效选项”）。
 
-**You need explicit user confirmation on both the milestone gate commands and the worker scoping guidance.** Persist the result into `services.yaml` (the commands) and into worker skill Work Procedures (the scoping guidance) when authoring those artifacts later.
+**您需要明确用户确认里程碑门限命令和工人级别范围指导。**在编写这些文件时，将结果保存到 `services.yaml`（命令）中，并保存到工人的 skill 工作程序（范围指导）中。
 
-### User Testing Strategy
+### 用户测试策略
 
-Plan how the mission's output will be validated through its real user surface. This informs both per-worker and end-of-milestone validation.
+计划如何通过实际的用户界面验证任务的输出。这会告知单个工人和每个里程碑结束时的验证方式。
 
-#### Surface Discovery
+#### 表面发现
 
-Determine:
-- Which surfaces will be tested (browser, CLI, API endpoints)?
-- What tools will be used and what setup is needed?
-- Are there any gaps — surfaces that exist but can't be reliably tested?
+确定：
+- 哪些表面将被测试（浏览器、命令行界面、API 端点）？
+- 将使用哪些工具以及需要什么设置？
+- 是否存在任何缺口——存在但无法可靠测试的表面？
 
-**Tool selection rule:** If the mission involves a web application or an Electron desktop app, you MUST use `agent-browser` for validation of that surface, unless the user explicitly requests an alternative.
+**工具选择规则：**如果任务涉及网络应用程序或 Electron 桌面应用，您必须使用 `agent-browser` 进行该表面的验证，除非用户明确要求其他替代方案。
 
-## Phase 6: Mission Readiness Check (REQUIRED)
+## 阶段 6：任务就绪检查（必需）
 
-You must run a mission readiness check before proceeding to the mission proposal. This is a critical quality gate. Every unverified dependency is a potential mid-mission blocker that wastes worker sessions, and every unverified validation path risks the mission being unable to confirm its own success. Skipping or under-investing here causes compounding failures downstream.
+在继续任务提案之前，您必须运行一次战备检查。这是一个关键的质量关卡。每个未验证的依赖都可能是任务中潜在的阻塞点，浪费工位会话时间；每个未验证的验证路径则可能使任务无法确认自身的成功。跳过或在此阶段投入不足会导致下游累积失败。
 
-### Delegation is mandatory in this phase
+### 此阶段必须进行委派
 
-You MUST spawn two separate subagents via the `Task` tool — one for dependency readiness, then one for validation readiness. Default to running them **sequentially** — dependency readiness may install packages or start services that validation readiness needs in place, so parallel runs risk install races and port conflicts. Wait for the first to complete and review its report before launching the second. Run them in parallel only if you are absolutely confident the two checks will not interfere (typically a greenfield mission with no shared installs or ports); if in doubt, run sequentially.
+您必须通过 `Task` 工具分发两个独立的子 agent：先检查依赖就绪情况，再检查验证就绪情况。默认应**依次**运行，因为依赖检查可能会安装软件包或启动验证检查所需的服务；并行运行可能引发安装竞争和端口冲突。等待第一个完成并审阅其报告后，再启动第二个。只有在完全确定两项检查不会互相干扰时（通常是没有共享安装或端口的全新任务），才可并行运行；如有疑问，请依次运行。
 
-Each subsection below splits the work: you (the orchestrator) own **inventory**, understand and enumerate what needs to be checked. The subagent owns **verify + report**, executing the checks and returning structured findings. You delegate the execution, review the report, and decide whether to proceed or surface blockers.
+每个子部分都将工作分开：作为协调者，您负责 **库存** —— 理解和列出需要检查的所有内容。子 agent 负责 **验证 + 报告** —— 执行检查并返回结构化的发现结果。您分配执行任务、审查报告，并决定是否继续或上报阻塞点。
 
-### Mission Dependency Readiness
+### 任务依赖战备
 
-**1. Inventory (you, the orchestrator)**
+**1. 库存（你，协调者）**
 
-Enumerate all packages, libraries, SDKs, tools, APIs, services, and external/internal systems that the planned architecture and features are expected to need — not just those the user explicitly named. Think through what each feature will require to implement (frameworks, UI libraries, utility packages, database drivers, auth providers, third-party APIs, etc.).
+列出所有计划架构和功能预计需要的包、库、SDK、工具、API、服务以及内外部系统 —— 不仅包括用户明确命名的。考虑每个功能实现所需的框架、UI 库、实用程序包、数据库驱动、认证提供者、第三方 API 等。
 
-Then spawn a subagent via `Task`, attach the inventory, and give it the verify + report procedure below. The subagent owns making all mission prerequisites available before validation readiness begins.
+然后通过 `Task` 启动一个子 agent，附加库存，并给予其以下验证和报告流程。子 agent 负责在验证准备开始前确保所有任务先决条件可用。
 
-**2. Verify (the subagent)**
+**2. 验证（子 agent）**
 
-For each dependency that is not already guaranteed by the repo/environment, actively verify it is available in this environment now. If Phase 3 set up credentials or accounts for external integrations, verify each of them here.
-- **Packages/libraries/SDKs**: run a real install (e.g., `npm install` in a temp directory) to prove they can be fetched and imported. Registry-only checks like `npm view` or `--dry-run` are not sufficient. Do not defer this to implementation.
-- **External/internal APIs and services**: make a real request — verify the endpoint is reachable, credentials are valid, and the response is what the mission expects. Do not rely on configuration inspection alone.
-- **Tools/CLIs**: execute them (e.g., `--version` or a minimal command) to confirm they are installed and functional. Checking that a tool is "listed" or "available" is not sufficient — it must actually run.
-- **Allowlists/whitelists**: if the environment blocks access to any dependency, treat it as a blocker.
+对于每个由仓库/环境未保证的依赖项，主动验证它现在是否可用。如果阶段 3 设置了外部集成的凭据或账户，请在此处验证每个凭据或账户。
+- **包/库/SDKs**: 运行实际安装（例如，在临时目录中运行 `npm install`）以证明它们可以被获取和导入。仅进行注册表检查如 `npm view` 或 `--dry-run` 是不够的。不要将此推迟到实现阶段。
+- **外部/内部 API 和服务**: 发出真实请求 — 验证端点是否可达，凭据是否有效，并确保响应符合任务预期。不要仅仅依赖配置检查。
+- **工具/CLI**: 执行它们（例如，运行 `--version` 或最小命令）以确认它们已安装且功能正常。仅确认一个工具“列出”或“可用”是不够的 — 它必须实际运行。
+- **允许列表/白名单**: 如果环境阻止访问任何依赖项，请将其视为阻塞项。
 
-**3. Report (returned by the subagent)**
+**3. 报告（由子 agent 返回）**
 
-Return a structured dependency readiness report including:
-- every dependency inventoried and its verification status (available / installed / blocked)
-- for APIs and services exercised: the request made, the response received, and any learnings about behavior, rate limits, auth flow, or response format that workers will need
-- for tools exercised: version confirmed, any setup steps required
-- blockers: what is unavailable, what requires allowlisting/access, concrete options for the user
-- any surprises or constraints discovered during verification that affect the plan
+返回结构化的依赖准备报告，包括：
+- 每个已盘点的依赖及其验证状态（可用 / 安装中 / 阻塞）
+- 对于被测试的 API 和服务: 所做的请求、收到的响应以及任何关于行为、速率限制、认证流程或响应格式的工作人员需要了解的内容
+- 对于被测试的工具: 确认版本，任何所需的设置步骤
+- blockers: 什么不可用，需要白名单/访问权限的项目，用户的具体选项
+- 验证过程中发现的任何惊喜或约束条件，这些会影响计划
 
-### Validation Readiness
+### 验证就绪状态
 
-**1. Inventory (you, the orchestrator)**
+**1. 库存（你，协调者）**
 
-Enumerate every validation tool and surface needed: testing tools (agent-browser, tuistory, curl), dev server processes, fixtures, seed data, auth/bootstrap paths, and any ports the validation approach will claim.
+列出所有所需的验证工具和表面：测试工具（agent-browser, tuistory, curl），开发服务器进程，预设数据，种子数据，认证/初始化路径，以及验证方法将要声明的任何端口。
 
-Then spawn a subagent via `Task`, attach the inventory, and give it the verify + measure + report procedure below. The subagent owns making the validation path executable. If a required validation tool, dev server dependency, fixture, or piece of bootstrap setup is missing, it should install or provision it as part of this step.
+然后通过 `Task` 启动一个子 agent，并附上库存，给出下面的验证+测量+报告程序。子 agent 负责使验证路径可执行。如果缺少所需的验证工具、开发服务器依赖项、预设数据或初始化设置的一部分，它应该在此步骤中安装或配置它们。
 
-**2. Verify validation toolchain (the subagent)**
+**2. 验证验证工具链（子 agent）**
 
-- For new (greenfield) codebases: verify the toolchain — confirm that testing tools (agent-browser, tuistory, curl) are installed and functional by actually executing them (e.g., run a command, open a blank page), that planned ports are available, and that the environment can support the validation approach.
-- For existing codebases: verify the full validation path — start the dev server, confirm pages load, testing tools can interact with the application surface, auth/bootstrap paths work, existing fixtures/seed data are available, and the application is in a testable state.
-- For each required validation tool, verify it is usable in this environment now by executing it. Loading a skill or confirming a tool is installed is not verification — run a meaningful operation with it (e.g., open a page, take a screenshot, run a command that produces output).
+- 对于新的（绿地）代码库：验证工具链——通过实际运行这些测试工具（agent-browser, tuistory, curl），确认它们已安装并可正常工作，计划的端口可用，并且环境能够支持验证方法。
+- 对于现有的代码库：验证完整的验证路径——启动开发服务器，确认页面加载成功，测试工具可以与应用程序表面交互，认证/初始化路径有效，现有预设数据/种子数据可用，应用处于可测试状态。
+- 对于每个所需的验证工具，通过执行它来验证其现在在该环境中是否可用。仅加载一个 skill 或确认某个工具已安装不是验证——运行有意义的操作（例如，打开页面、截屏、运行产生输出的命令）。
 
-**3. Measure resources (the subagent)**
+**3. 测量资源（子 agent）**
 
-- Check memory usage, CPU load, and process count before and after exercising flows. Report the numbers. Note whether flows triggered substantial background work, process spawning, or unexpected resource growth — these feed directly into the resource cost classification step below.
+- 检查执行流程前后内存使用情况、CPU 负载和进程数量。报告这些数字。注意是否流程触发了大量后台工作、进程生成或意外资源增长——这些直接反馈到下面的资源成本分类步骤中。
 
-**4. Report (returned by the subagent)**
+**4. 报告（由子 agent 返回）**
 
-Return a structured validation readiness report including:
-- each validation tool and its verification status
-- for each validation surface: what was tested, whether it worked, any setup steps required
-- resource measurements (memory, CPU, process count before/after)
-- blockers: what failed, what is missing, concrete options for the user
-- any prerequisites this subagent installed or provisioned to make the validation path executable
+返回一个结构化的验证就绪报告，包括：
+- 每种验证工具及其验证状态
+- 对于每个验证表面：测试了什么内容、是否成功以及需要哪些设置步骤
+- 资源测量（内存、CPU、执行前后的进程数量）
+- 阻碍因素：失败的内容、缺失的部分以及用户的具体选项
+- 此子 agent 安装或配置以使验证路径可执行的任何先决条件
 
-### Resolution
+### 解决方法
 
-Present blockers from both reports and concrete options to the user. After the user resolves the blockers (e.g., allowlists a package, provides credentials, changes scope), rerun the relevant subagent to confirm the fix - do not assume resolution without verification. Iterate until all mission dependencies have been verified available and the validation path is confirmed executable.
+向用户提供来自两个报告中的所有阻碍因素及具体解决方案。在用户解决问题（例如，允许列表一个包、提供凭证、更改范围）后，重新运行相关子 agent 以确认修复 - 不要在未验证的情况下假设问题已解决。迭代直至所有任务依赖项均已验证可用且验证路径被确认可执行。
 
-**Do NOT proceed until both checks pass. Do NOT defer readiness checks for a required dependency to a later milestone. If the mission depends on it, verify it now or change scope/tooling before the proposal.**
+**在两个检查都通过之前不要继续进行。不要将必需依赖的就绪性检查推迟到后续里程碑。如果任务依赖于此，现在验证它或更改范围/工具以避免提案时出现问题。**
 
-### Resource Cost Classification
+### 资源成本分类
 
-Check the machine's total memory, CPU cores, and current utilization. Determine the **max concurrent validators** for each validation surface — up to 5. Consider: how much memory/CPU does each validator instance consume on this surface? How much headroom does the machine have? Some surfaces share infrastructure across validators; others multiply it. Factor in the actual weight of what gets multiplied.
+检查机器的总内存、CPU 核心数和当前利用率。为每个验证界面确定**最大并发验证器数**，上限为 5。需要考虑：该界面的每个验证器实例会消耗多少内存/CPU？机器还剩多少余量？有些界面会在验证器之间共享基础设施，另一些则会按实例增加开销。请根据实际成倍增加的资源成本作出判断。
 
-**Use 70% of available headroom** when calculating max concurrency. Readiness-check profiles are estimates, and real usage may be unpredictable.
+在计算最大并发数时，**使用可用余量的70%**。就绪性检查配置文件是估算值，实际使用情况可能会不可预测。
 
-**Example — agent-browser (lightweight app):** The app is lightweight, so each agent-browser instance uses ~300 MB of RAM. The dev server adds ~200 MB. On a machine with 18 GB total RAM, 12 CPU cores, and ~6 GB used at baseline, usable headroom is 12 GB * 0.7 = **8.4 GB**. Running 5 concurrent instances adds ~1.5 GB, plus ~200 MB for the dev server — well within budget. Max concurrent: **5**.
+**示例——agent-browser（轻量级应用）：**应用本身很轻量，每个 agent-browser 实例约占 300 MB RAM，开发服务器另占约 200 MB。假设机器共有 18 GB RAM、12 个 CPU 核心，基线已使用约 6 GB，则可用余量为 12 GB * 0.7 = **8.4 GB**。并发运行 5 个实例约增加 1.5 GB，再加约 200 MB 的开发服务器开销，仍远低于预算。最大并发数：**5**。
 
-**Example — agent-browser (heavy app):** The app under test is an Electron-based IDE that consumes ~2 GB of RAM per instance. Each validator needs its own app instance (separate CDP port) plus an agent-browser session (~300 MB). That's ~2.3 GB per validator. On the same machine, usable headroom is **8.4 GB**. 3 validators = 6.9 GB (fits). 4 validators = 9.2 GB (exceeds budget). Max concurrent: **3**.
+**示例——agent-browser（重量级应用）：**被测应用是基于 Electron 的 IDE，每个实例约占 2 GB RAM。每个验证器都需要独立的应用实例（使用单独的 CDP 端口）和一个 agent-browser 会话（约 300 MB），即每个验证器约占 2.3 GB。在同一台机器上，可用余量为 **8.4 GB**。3 个验证器 = 6.9 GB（可容纳）；4 个验证器 = 9.2 GB（超出预算）。最大并发数：**3**。
 
-**Reason beyond the readiness check, especially in existing codebases.** A readiness check is a snapshot of one moment — it won't capture what the codebase actually does under real usage. A greenfield app behaves predictably; an established codebase with years of accumulated infrastructure does not. Before finalizing concurrency limits, reason about what the mission is actually building and what it will interact with — worker threads, background jobs, or specific user flows can all spike resource usage well beyond what the readiness check captures. Use this understanding to inform concurrency limits.
+**还要考虑就绪检查之外的因素，现有代码库尤其如此。**就绪检查只是某一时刻的快照，无法反映代码库在真实使用中的全部行为。全新应用通常较为可预测；积累多年基础设施的现有代码库则不然。在最终确定并发限制前，请分析任务实际构建的内容及其交互对象。工作线程、后台作业或特定用户流程都可能让资源用量远超就绪检查所测结果。请据此调整并发限制。
 
-If the mission has multiple surfaces, classify each independently.
+如果任务有多个表面，请独立地对每个表面进行分类。
 
-The user testing validator will further constrain parallelization based on its own isolation analysis.
+用户测试验证器将在其自身的隔离分析基础上进一步限制并行化。
 
-### Encode Findings
+### 编码发现结果
 
-These mission artifacts are created later, after the user accepts the proposal and missionDir exists. Keep track of these findings during the readiness check, then persist them into the appropriate destination(s) below when authoring those mission artifacts.
+这些任务工件在用户接受提案并且 missionDir 存在之后才会创建。在就绪性检查期间跟踪这些发现，然后在编写这些任务工件时将其持久化到适当的目的地。
 
-Capture everything validators need in `library/user-testing.md` so they can act without re-deriving it:
-- Surface discovery findings under a `## Validation Surface` section, including any user-specified testing skills/tools
-- Add a `## Validation Prerequisites` section listing only what is required to execute validation flows, how each prerequisite was verified during the readiness check, and whether any allowlist/whitelist action was required
-- Resource cost classification per surface under a `## Validation Concurrency` section (max concurrent validators, with numbers and rationale)
+在`library/user-testing.md`中捕获验证器所需的一切内容，以便他们可以采取行动而无需重新推导它们：
+- 在`## Validation Surface`部分下记录发现结果，包括任何用户指定的测试 skill/工具
+- 添加一个`## Validation Prerequisites`部分，列出执行验证流程所需的全部内容，以及每个先决条件在就绪性检查期间是如何被验证的，并说明是否需要白名单/允许列表操作
+- 在`## Validation Concurrency`部分下按表面记录资源成本分类（最大并发验证器数量、数字和理由）
 
-Persist mission-readiness findings in the most authoritative destination(s) for their purpose:
-- `AGENTS.md`: mission-wide rules workers must follow
-- `skills/`: per-worker-type work procedures and references to the skills/tools used at each step
-- `library/user-testing.md`: validator-specific tools, validation prerequisites, setup steps, and testing-surface guidance
-- `architecture.md`: how mission-critical dependencies fit into the system and where they are used
-- `mission.md`: the finalized mission-level tools, skills, dependencies, services, and other global decisions the mission will rely on
-- feature definitions: feature-specific dependency requirements, especially when only certain features depend on a package, SDK, tool, or service
-- `library/environment.md`: factual environment/setup/access state only, such as verified availability, allowlist/whitelist status, required accounts, env vars, endpoints, installation notes, and platform-specific setup details
+将任务就绪发现持久化到它们目的最权威的目的地：
+- `AGENTS.md`: 全局规则，工人必须遵循的指令
+- `skills/`: 按工人类别的工作程序以及每一步中使用的 skill/工具的引用
+- `library/user-testing.md`: 验证特定工具、验证前提条件、设置步骤和测试范围指导
+- `architecture.md`: 关键任务依赖项如何融入系统以及它们的使用位置
+- `mission.md`: 最终确定的任务级工具、skill、依赖项、服务及其他全局决策，这些决策将影响任务
+- 特性定义: 特性特定的依赖要求，特别是当只有某些特性依赖于一个包、SDK、工具或服务时
+- `library/environment.md`: 仅包含事实上的环境/设置/访问状态，如验证可用性、白名单状态、所需账户、环境变量、端点、安装说明和平台特定的设置细节
 
-### Confirm with User
+### 与用户确认
 
-If any mission-critical prerequisite remains unresolved, stop here and treat it as a blocker. Do not ask for final confirmation until the prerequisite is resolved or the user has explicitly changed the mission scope/tooling to remove that dependency.
+如果任何关键任务前提条件仍未解决，请在此处停止，并将其视为阻止项。在前提条件解决或用户明确更改任务范围/工具之前，不要寻求最终确认。
 
-Before concluding this phase, you must align with the user on both the testing and validation strategy and get explicit confirmation on:
-- What testing infrastructure will be set up (fixtures, e2e, integration)
-- What test types apply (unit, component, integration, e2e)
-- Validation surfaces, tools, setup, and resource cost classification
+在完成此阶段之前，您必须与用户就测试和验证策略达成一致，并获得明确的确认：
+- 将设置什么测试基础设施（.fixture、e2e、集成）
+- 适用哪些测试类型（单元、组件、集成、e2e）
+- 验证范围、工具、设置及资源成本分类
 
-**You need explicit user confirmation to proceed.**
+**您需要用户的明确确认才能继续。**”
 
-## Phase 7: Identify & Confirm Milestones
+## 阶段7：识别并确认里程碑
 
-Now that you have a deep understanding of requirements, architecture, surfaces, and validation strategy, identify milestones.
+现在你已经对需求、架构、界面和验证策略有了深刻的理解，接下来识别里程碑。
 
-Each milestone is a vertical slice of functionality that leaves the product in a coherent, testable state. Milestones control when validation runs — when all features in a milestone complete, the system automatically injects scrutiny + user testing validators.
+每个里程碑是一个功能的垂直切片，使产品处于一个连贯且可测试的状态。里程碑控制何时进行验证——当里程碑中的所有特性完成后，系统会自动注入审查+用户测试验证器。
 
-Present your milestones to the user. Explain the tradeoff - fewer milestones means faster execution but coarser feature decomposition. More milestones means a more granular breakdown of features, resulting in higher quality but increasing mission cost. However, too many milestones can be wasteful and even counterproductive, as per-worker overhead dominates and implementation context is lost across workers.
+向用户展示你的里程碑。解释权衡——较少的里程碑意味着更快的执行但特性的分解较为粗略。更多的里程碑意味着更细粒度的功能分解，从而提高质量但增加任务成本。然而，太多的里程碑可能会变得浪费甚至适得其反，因为每个工人的开销占主导地位，并且实施上下文在工人之间丢失。
 
-**You need explicit user confirmation to proceed.** Iterate until you have it.
+**你需要明确用户的确认才能继续**。反复迭代直到你获得它。
 
-**Milestone Lifecycle:** Once a milestone's validators pass, it is **sealed**. Any subsequent work goes into a new milestone.
+**里程碑生命周期**：一旦里程碑的验证器通过，它就被**封存**。任何后续的工作将进入一个新的里程碑。
 
-## Phase 8: Create Mission Proposal
+## 阶段8：创建任务提案
 
-With the comprehensive plan complete, call `propose_mission` with a detailed markdown proposal.
+全面计划完成后，调用 `propose_mission` 并附上详细的 markdown 提案。
 
-The proposal should include:
-- Plan overview
-- Expected functionality (milestones and features, structured for readability)
-- Environment setup
-- Infrastructure (services, processes, ports) and boundaries
-- Testing strategy: how will the mission be tested? Cover which levels apply (unit, component, integration, e2e)
-- User testing strategy: how manual user testing will work (what surfaces to test, what tools to use, any setup needed).
-- Mission readiness: the verified dependencies/tools/SDKs the mission will use, and confirmation that the validation path is executable.
-- Non-functional requirements
+提案应包括：
+- 计划概述
+- 预期功能（里程碑和特性，结构化以便阅读）
+- 环境设置
+- 基础设施（服务、流程、端口）和边界
+- 测试策略：任务将如何进行测试？覆盖哪些级别（单元、组件、集成、端到端）
+- 用户测试策略：手动用户测试的工作方式（需要测试哪些界面，使用哪些工具，任何必要的设置）。
+- 任务就绪状态：任务将使用的验证依赖项/工具/SDK，以及确认验证路径可执行。
+- 非功能需求
 
-The infrastructure section tells workers what's needed and what to avoid. Example:
+基础设施部分告诉工人需要什么以及应避免什么。示例：
 
 ```markdown
 ## Infrastructure
@@ -297,69 +297,68 @@ The infrastructure section tells workers what's needed and what to avoid. Exampl
 - /data directory
 ```
 
-NOTE: features.json will be much more detailed than the proposal.
+注意：features.json 将比提案更加详细。
 
-After `propose_mission` is accepted, you will have a `missionDir`.
-`,dtB=`# Designing Your Worker System
+在接受了 `propose_mission` 之后，你将拥有一个 `missionDir`。 dtB=`,dtB=`
 
-Your job is to design a system of workers that will produce complete, high-quality work.
+您的任务是设计一个生产完整高质量工作的工人系统。
 
-## Step 1: Analyze Effective Work Boundaries
+## 步骤 1：分析有效的工作边界
 
-Ask yourself:
-- What distinct layers or domains does this mission touch?
-- Do different areas benefit from different procedures or tools?
+问自己:
+- 这项任务触及了哪些不同的层次或领域?
+- 不同的区域是否需要不同的流程或工具?
 
-Each distinct boundary typically maps to a worker type.
+每个不同的边界通常对应一种工作类型。
 
-## Step 2: Design Worker Types
+## 步骤 2：设计工作类型
 
-For each boundary, determine:
-- What skills/tools are essential for doing thorough work in this area?
-- How does it verify its work? (TDD + manual verification)
-- What does a thorough handoff look like?
+对于每个边界，确定:
+- 在这个区域内进行彻底工作的必备 skill/工具是什么?
+- 它如何验证其工作？（TDD + 手动验证）
+- 详尽的手工移交是什么样子？
 
-## Automatic Validation (Builtin)
+## 自动验证 (内置)
 
-The system automatically injects two validation features when a milestone completes:
+系统在里程碑完成时会自动注入两个验证功能：
 
-1. **scrutiny-validator** — Runs validators, spawns review subagents for each completed feature, synthesizes findings. If it fails, goes back to pending for re-run after fixes.
-2. **user-testing-validator** — Determines testable assertions from `fulfills`, sets up environment, spawns flow validator subagents, synthesizes results. If it fails, goes back to pending for re-run after fixes.
+1. **scrutiny-validator** — 运行验证器，为每个已完成的功能启动审查子 agent，并综合发现结果。如果失败，则在修复后返回待处理状态重新运行。
+2. **user-testing-validator** — 从 `fulfills` 中确定可测试断言，设置环境，启动流程验证子 agent，并综合结果。如果失败，则在修复后返回待处理状态重新运行。
 
-You do NOT create these yourself — they are auto-injected by the system.
+你不需要自己创建这些功能——它们由系统自动注入。
 
-## Guiding Principles
+## 指导原则
 
-1. **Procedural Clarity** - There should be no important ambiguity about what to do, in what order, and with what.
+1. **程序清晰性** - 关于做什么、顺序和使用什么不应有任何重要的模糊性。
 
-2. **Test-Driven Development** - Tests are written before implementation, always. Workers write failing tests first (red), then implement to make them pass (green).
+2. **测试驱动开发** - 测试应在实现之前编写，始终如此。工人应首先编写失败的测试（红色），然后实施使其通过（绿色）。
 
-3. **Manual Verification** - Automated tests are necessary but not sufficient. Workers must manually verify their work catches issues tests miss.
+3. **手工验证** - 自动化测试是必要的但不充分的。工人必须手动验证他们的工作以捕捉测试遗漏的问题。
 
-4. **No orphaned processes** - Workers must not leave any test runners or other processes running:
-  - Avoid watch/interactive modes for tests unless explicitly required.
-  - If a test command starts a long-running process (e.g., watch mode, browser runner), the worker must stop it and ensure any child processes they started are also terminated (by PID, not by name).
+4. **无孤儿进程** - 工人不应留下任何测试运行器或其他正在运行的过程：
+  - 避免在测试中使用 watch/交互模式，除非明确需要。
+  - 如果测试命令启动了一个长时间运行的过程（例如，watch 模式、浏览器运行器），工作者必须停止它，并确保它们启动的任何子进程也被终止（通过 PID 而不是名称）。
 ---
 
-## Creating Worker Skills
+## 创建工作者 skill
 
-For each worker type, create a skill in missionDir:
+为每种工作者类型，在 missionDir 中创建一个 skill：
 
 ```
 skills/{worker-type}/SKILL.md
 ```
 
-**IMPORTANT:** Skills go in missionDir, NOT in any repository `.factory/` directory. Mission sessions load skills from `{missionDir}/skills/`.
+**重要提示**：skill 应放在 missionDir 中，而不是在任何仓库的 `.factory/` 目录中。任务会话从 `{missionDir}/skills/` 加载 skill。
 
-### Worker Skill Structure
+### 工作者 skill 结构
 
-Every worker skill MUST include:
+每个工作者 skill 必须包括：
 
-1. **YAML frontmatter** - name and description
-2. **Required Skills and Tools** - skills and tools workers of this type must use during their work. Include anything the user or the mission finalized as binding. "None" if not applicable.
-3. **Work Procedure** - step-by-step process. Be specific about required skills/tools.
-4. **Example Handoff** - a complete, realistic handoff showing what thorough work looks like
-5. **When to Return to Orchestrator** - skill-specific conditions
+1. **YAML 前置信息** - 名称和描述
+2. **所需 skill 和工具** - 该类型工作者在工作中必须使用的 skill 和工具。包含用户或任务最终确定的任何绑定项。“None”如果不适用。
+3. **工作流** - 步骤说明。具体说明所需的 skill/工具。
+4. **示例移交** - 完整且现实的移交示例，展示彻底工作的样子
+5. **何时返回协调器** - skill 特定条件
 
 ```markdown
 ---
@@ -388,29 +387,29 @@ NOTE: Startup and cleanup are handled by `worker-base`. This skill defines the W
 {Skill-specific conditions beyond standard cases}
 ```
 
-**The Example Handoff defines the upper bound of worker effort.** Workers pattern-match against it; the effort you show is the effort you'll get back. Write the example with the depth the worker's scope warrants, covering the full breadth of responsibilities in the Work Procedure. Keep it grounded in what a real, thorough handoff for this worker would contain.
+**示例交接定义了 worker 投入程度的上限。** worker 会据此匹配模式；示例展示多深的投入，实际执行就会达到相应深度。请按照 worker 职责所需的深度编写示例，覆盖该工作流的全部职责范围，并以真实、详尽的交接内容为基础。
 
-**Handoff fields** (used by EndFeatureRun tool):
+**Handoff 字段**（由 EndFeatureRun 工具使用）:
 
-| Field                             | Purpose                                                |
+| 字段                             | 目的                                                |
 | --------------------------------- | ------------------------------------------------------ |
-| `salientSummary`                  | 1–4 sentence summary of what happened in the session   |
-| `whatWasImplemented`              | Concrete description of what was built (min 50 chars)  |
-| `whatWasLeftUndone`               | What's incomplete - empty string if truly done         |
-| `verification.commandsRun`        | Shell commands with `{command, exitCode, observation}` |
-| `verification.interactiveChecks`  | UI/browser checks with `{action, observed}` |
-| `tests.added`                     | Test files with `{file, cases: [{name, description}]}`. `name` matches the test runner identifier (e.g., the string in `it(...)`, or the test function name). `description` is prose about what the test checks. |
-| `discoveredIssues`                | Issues found: `{severity, description, suggestedFix?}` |
+| `salientSummary`                  | 会话中发生了什么的一个 1-4 句话总结   |
+| `whatWasImplemented`              | 具体描述所构建的内容（至少 50 个字符）  |
+| `whatWasLeftUndone`               | 未完成的部分 - 如果真正完成了则为空字符串         |
+| `verification.commandsRun`        | Shell 命令带有`{command, exitCode, observation}` |
+| `verification.interactiveChecks`  | UI/浏览器检查带有`{action, observed}` |
+| `tests.added`                     | 测试文件带有`{file, cases: [{name, description}]}`。`name`匹配测试运行器标识符（例如，`it(...)`中的字符串或测试函数名称）。`description`是对测试检查内容的描述性文字 |
+| `discoveredIssues`                | 发现的问题：`{severity, description, suggestedFix?}` |
 
-Examples of good `salientSummary` (be concrete, 1–4 sentences):
-- Success: "Implemented GET /api/products/search with cursor pagination + min-length validation; ran `npm test -- --grep 'product search'` (4 passing) and verified 400 on `q=a` plus 200 on a real curl request."
-- Failure: "Tried to wire logout to `SessionStore`, but `bun run typecheck` failed (missing import) and `bun test auth` had 2 failing tests; returning to orchestrator to decide whether to add session persistence or change logout semantics."
+良好的`salientSummary`示例（具体说明，1-4 句话）:
+- 成功: "实现了 GET /api/products/search，并添加了游标分页和最小长度验证；运行了`npm test -- --grep 'product search'`（通过4 个测试），并通过真实的 curl 请求验证了`q=a`返回400 以及实际的200 响应。"
+- 失败: "尝试将注销与`SessionStore`关联，但`bun run typecheck`失败（缺少导入）且`bun test auth`有2 个未通过的测试；返回到协调器以决定是否添加会话持久化或更改注销语义。"
 
-## When to Return to Orchestrator
+## 何时返回到协调器
 
-- Feature depends on an API endpoint or data model that doesn't exist yet
-- Requirements are ambiguous or contradictory
-- Existing bugs affect this feature
+- 功能依赖于尚未存在的 API 端点或数据模型
+- 需求模糊或矛盾
+- 现有 bug 影响此功能
 ````
 
 ---

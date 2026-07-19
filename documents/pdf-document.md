@@ -1,62 +1,50 @@
 ---
 name: pdf-document
-description: Produce polished PDF documents (reports, invoices, resumes, letters, flyers, certificates, any "export to PDF" deliverable). Use whenever the user asks for a PDF or a printable document.
+description: 生成精美的 PDF 文档（报告、发票、简历、信件、传单、证书，任何“导出为 PDF”的交付物）。每当用户要求 PDF 或可打印的文档时使用。
 ---
 
-# Authoring PDF documents
+# 创建 PDF 文档
 
-When the user wants a PDF, author it as a structured **document spec** and let
-Factory render it to a true vector PDF on the fly. Do **not** generate a binary
-`.pdf`, do **not** write HTML, and do **not** add any PDF library or CDN.
+当用户需要 PDF 时，请编写一份结构化的**文档规范**，由 Factory 按需渲染为真正的矢量 PDF。**不要**生成二进制 `.pdf`，**不要**编写 HTML，**不要**添加任何 PDF 库或 CDN。
 
-The spec is a [pdfmake](https://pdfmake.github.io/docs/) `docDefinition`
-serialized as JSON. It is pure data (no scripts, no DOM), which keeps generation
-safe. Factory validates it, renders a crisp vector PDF (selectable text, real
-pagination), and shows it inline with a working **Download PDF** button on both
-web and desktop.
+规范是一个使用 [pdfmake](https://pdfmake.github.io/docs/) 的 `docDefinition`，并序列化为 JSON。它只包含数据（没有脚本、没有 DOM），因此可以安全生成。Factory 会验证规范并渲染清晰的矢量 PDF（文本可选中，分页真实），在 Web 和桌面端直接显示预览，并提供可用的 **下载 PDF** 按钮。
 
-## How to produce the document
+## 如何生成文档
 
-1. Write **one** file whose name ends in `.pdf.json` — e.g. `report.pdf.json`,
-   `invoice.pdf.json`, `resume.pdf.json`. The user only ever sees it as a PDF
-   (e.g. `report.pdf`); the `.json` is an internal detail.
-2. The file content is a single JSON object: a pdfmake `docDefinition`.
-3. Do **not** also write a `.pdf` file — the PDF is generated on demand and is
-   not persisted to the workspace.
+1. 编写**一个**文件，其名称以 `.pdf.json` 结尾——例如 `report.pdf.json`、
+   `invoice.pdf.json`、`resume.pdf.json`。用户只会将其视为 PDF 文件（例如 `report.pdf`）；`.json` 扩展名仅供内部使用。
+2. 文件内容是一个 JSON 对象，即 pdfmake `docDefinition`。
+3. **不要**再写入 `.pdf` 文件——PDF 会按需生成，
+   不会持久化到工作区。
 
-## What to tell the user
+## 如何告知用户
 
-Talk about it as a **PDF** ("I've created your report PDF — open it to preview
-and download"). Never mention HTML, JSON, pdfmake, or the spec format.
+将交付物称为 **PDF**（例如：“我已创建报告 PDF，请打开预览并下载。”）。不要提及 HTML、JSON、pdfmake 或规范格式。
 
-## Spec rules (these are enforced — stay within them)
+## 规范规则（这些会被强制执行，请遵守）
 
-- **Top-level keys** (only these): `content` (required), `styles`,
-  `defaultStyle`, `pageSize`, `pageOrientation` (`"portrait"` | `"landscape"`),
-  `pageMargins`, `header`, `footer`, `info`, `images`, `background`,
-  `watermark`, `compress`, `language`. Unknown top-level keys are rejected.
-- **Fonts**: only `"Roboto"` is available. Do not set any other `font`. Use
-  `bold`/`italics` and `fontSize` for emphasis.
-- **Images**: must be base64 `data:` URIs (`data:image/png;base64,…`, or jpeg,
-  gif, webp). Remote URLs and file paths will be rejected. Either inline the
-  `image` value as a data URI, or declare it once in the top-level `images` map
-  and reference it by name. Omit images you cannot embed.
-- `header`/`footer` must be static content (objects/strings/arrays), not
-  functions — functions cannot appear in JSON anyway.
+- **顶级键**（仅限以下键）：`content`（必填）、`styles`、
+  `defaultStyle`、`pageSize`、`pageOrientation`（`"portrait"` | `"landscape"`）、`pageMargins`、`header`、`footer`、`info`、`images`、`background`、`watermark`、`compress`、`language`。未知的顶级键会被拒绝。
+- **字体**：仅可用 `"Roboto"`。不要设置任何其他 `font`。使用
+  `bold`/`italics` 和 `fontSize` 来强调内容。
+- **图片**：必须是 base64 `data:` URI（例如 `data:image/png;base64,…`，也支持 jpeg、
+  gif、webp）。远程 URL 和文件路径会被拒绝。可以将 `image` 值内联为 data URI，也可以在顶级 `images` 映射中声明一次，再按名称引用。无法嵌入的图片应省略。
+- `header`/`footer` 必须是静态内容（对象/字符串/数组），而不是
+  函数——JSON 本来就无法包含函数。
 
-## Capabilities you can use in `content`
+## 可在 `content` 中使用的功能
 
-- Text with styling: `{ "text": "Title", "style": "h1" }`, plus `bold`,
-  `italics`, `fontSize`, `color`, `alignment`, `margin: [l, t, r, b]`.
-- Rich runs: `{ "text": ["plain ", { "text": "bold", "bold": true }] }`.
-- Lists: `{ "ul": [...] }` / `{ "ol": [...] }`.
-- Columns: `{ "columns": [ {...}, {...} ] }` (use `width` per column).
-- Tables: `{ "table": { "headerRows": 1, "widths": ["*", "auto"],
-"body": [[...], [...]] }, "layout": "lightHorizontalLines" }`.
-- Spacing helpers: `margin`, `{ "text": "", "margin": [0, 8] }`.
-- Page control: `pageBreak: "before"` / `"after"` on a node.
+- 带格式的文本：`{ "text": "Title", "style": "h1" }`，并可使用 `bold`、
+  `italics`、`fontSize`、`color`、`alignment`、`margin: [l, t, r, b]`。
+- 富文本片段：`{ "text": ["plain ", { "text": "bold", "bold": true }] }`。
+- 列表：`{ "ul": [...] }` / `{ "ol": [...] }`。
+- 分栏：`{ "columns": [ {...}, {...} ] }`（每列使用 `width`）。
+- 表格：`{ "table": { "headerRows": 1, "widths": ["*", "auto"],
+  "body": [[...], [...]] }, "layout": "lightHorizontalLines" }`。
+- 间距辅助：`margin`、`{ "text": "", "margin": [0, 8] }`。
+- 页面控制：在节点上使用 `pageBreak: "before"` / `"after"`。
 
-## Minimal example (`invoice.pdf.json`)
+## 最小示例 (`invoice.pdf.json`)
 
 ```json
 {

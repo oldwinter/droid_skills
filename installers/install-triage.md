@@ -1,31 +1,31 @@
 ---
 name: install-triage
 description: >
-  Scaffold a scheduled Slack triage automation, generalized to any company.
-  Sets up a Python tool layer (run_triage.py) plus a HEARTBEAT.md agent loop that
-  scans configured Slack channels for actionable messages, dedupes against a
-  ticketing system (Linear or Jira), files tickets, and posts a run summary.
-  Use when the user wants to stand up an automated triage bot.
+  搭建适用于任何公司的定时 Slack triage 自动化。
+  创建 Python 工具层（run_triage.py）和 HEARTBEAT.md agent 循环，
+  扫描已配置的 Slack 频道以发现可操作消息，与工单系统（Linear 或 Jira）
+  中的现有条目去重，创建新工单并发布运行摘要。
+  当用户希望部署自动 triage 机器人时使用。
 user-invocable: true
 ---
 
-# Install Triage
+# 安装 Triage
 
-Clear all previous plans and todos. Your previous task is complete. Your new task is to scaffold a scheduled **triage automation** for this user.
+清除所有之前的计划和待办事项。你之前的任务已完成。你的新任务是为这位用户搭建一个定时的**问题处理自动化**。
 
-A triage automation runs on a schedule, scans a set of Slack channels for messages that represent distinct, actionable work, dedupes them against an existing ticketing backlog (Linear or Jira), files tickets for the genuinely new/actionable ones, and posts a run summary to a Slack channel. The Python tool layer below does only mechanical I/O; the deployed automation's agent makes every judgement call (actionability, routing, dedupe).
+triage 自动化按计划运行，扫描一组 Slack 频道，识别代表独立、可操作任务的消息，并与现有工单队列（Linear 或 Jira）去重。对于真正新增且可操作的任务，它会创建工单，并向 Slack 频道发布运行摘要。底层 Python 工具层只负责机械性的 I/O；部署后的自动化 agent 负责判断可操作性、路由和重复项。
 
-**Before starting, create a todo list from the phases below.**
+**在开始之前，请从以下阶段创建待办事项列表。**
 
-## Where to scaffold
+## 如何搭建
 
-Automations live at `~/.factory/automations/<slug>/` (or `~/.factory-dev/automations/<slug>/` in dev). If you were invoked from the automations UI, the create prompt has already told you the exact automation root and slug, and has pre-written `memory/config.json` and `memory/state.json`. Use that root. Otherwise, ask the user for an automation name, derive a kebab-case slug, and use `~/.factory/automations/<slug>/`.
+自动化脚本位于 `~/.factory/automations/<slug>/`（开发模式下为 `~/.factory-dev/automations/<slug>/`）。如果从自动化 UI 启动，创建提示词已经给出具体的自动化根目录和 slug，并预先写入 `memory/config.json` 和 `memory/state.json`。使用该根目录。否则，请向用户询问自动化名称，推导 kebab-case slug，并使用 `~/.factory/automations/<slug>/`。
 
-All paths below are **relative to the automation root**.
+以下路径均相对于**自动化根目录**。
 
-## Phase 1 — Gather configuration
+## 阶段1 — 收集配置
 
-The automation is configured entirely by `memory/config.json`:
+自动化完全通过 `memory/config.json` 配置：
 
 ```json
 {
@@ -46,53 +46,53 @@ The automation is configured entirely by `memory/config.json`:
 }
 ```
 
-`scan_channels` (an array of `{ "id": "C…", "name": "…" }`), `summary_channel` (a single `{ "id": "C…", "name": "…" }`), and `default_destination` are **required at runtime** — `run_triage.py discover` reads `scan_channels`, posting the summary reads `summary_channel`, and `ticket-context` uses `default_destination` as the low-confidence fallback (the team for Linear, the project for Jira; Jira needs a project to file at all). The `*_description` fields are the user's plain-language descriptions; they are hints for resolving the real values, not substitutes for them.
+`scan_channels`（一个数组的`{ "id": "C…", "name": "…" }`），`summary_channel`（单个`{ "id": "C…", "name": "…" }`），和`default_destination`是**运行时必需的** — `run_triage.py discover`读取`scan_channels`，发布总结时读取`summary_channel`，而`ticket-context`使用`default_destination`作为低置信度的备用（对于 Linear 团队，对于 Jira 项目；Jira 需要一个项目才能创建票务）。`*_description`字段是用户的白话描述；它们是解决实际值的提示，而不是替代品。
 
-- **If `memory/config.json` already exists** (UI flow), read it and use it as the source of truth for the ticket system and guidance — do NOT re-ask for those. However, the UI does **not** resolve the channels or destination: the file has `scan_channels_description`, `summary_channel_description`, and `default_destination_description` but may have no resolved `scan_channels` / `summary_channel` / `default_destination`. You MUST:
-  1. Resolve `scan_channels_description` and `summary_channel_description` into actual Slack channels — list the available channels with the Slack tooling (or ask the user to paste channel ids) and match them to the descriptions.
-  2. Resolve `default_destination_description` into a real team (Linear) / project (Jira) — run `python3 run_triage.py ticket-context` (after secrets are written) to list teams/projects and match it.
-  3. Confirm the resolved scan-channel set, the single summary channel, and the default destination with the user via the `AskUser` tool (let them add/remove channels).
-  4. Write them back into `memory/config.json` as `scan_channels`, `summary_channel`, and `default_destination` before finishing. The summary channel may be one the bot has not joined yet — that is fine, `run_triage.py` auto-joins it on first post.
-- **If it does not exist** (standalone `/install-triage`), use the `AskUser` tool to collect:
+- **如果 `memory/config.json` 已经存在**（UI 流程），读取它并将其作为票据系统和指导的来源——不要重新询问这些内容。然而，UI **不** 解决频道或目的地：文件中有 `scan_channels_description`、`summary_channel_description` 和 `default_destination_description` 但可能没有解决的 `scan_channels` / `summary_channel` / `default_destination`。你必须：
+  1. 将 `scan_channels_description` 和 `summary_channel_description` 转换为实际的 Slack 频道——列出可用的频道（使用 Slack 工具或让用户粘贴频道 id），并匹配它们到描述中。
+  2. 将 `default_destination_description` 解决为一个真实的团队（Linear）/ 项目（Jira）——运行 `python3 run_triage.py ticket-context`（在写入密钥后）列出团队/项目，并进行匹配。
+  3. 通过 `AskUser` 工具与用户确认解决后的扫描频道集、单一总结频道和默认目的地。
+  4. 在完成前将它们写回 `memory/config.json` 作为 `scan_channels`、`summary_channel` 和 `default_destination`。总结频道可能是机器人尚未加入的频道——这没关系，`run_triage.py` 在首次发布时会自动加入它。
+- **如果不存在**（独立 `/install-triage`），使用 `AskUser` 工具收集：
 
-  1. Which Slack channels to scan (resolve names to channel ids — list channels with the Slack tooling or ask the user to paste ids), and confirm the resolved set with the user.
-  2. Which Slack channel to post the run summary to (resolve to a channel id; the bot auto-joins on first post).
-  3. Which ticketing system (`linear` or `jira`).
-  4. The default destination — the Linear team / Jira project tickets route to when there's no clear owner (resolve to `{key,id?,name}` via `ticket-context`).
-  5. Ticket-filing guidance: routing rules, which labels/issue types to apply, and the default team (Linear) or project (Jira).
+  1. 要扫描的 Slack 频道（将名称解析为频道 id — 列出频道或让用户粘贴 id），并确认解决后的集合与用户一起。
+  2. 发布运行总结的 Slack 频道（解析为频道 id；机器人在首次加入时会自动加入）。
+  3. 哪个票据系统 (`linear` 或 `jira`)。
+  4. 默认目的地——当没有明确的所有者时，代码将路由到 Linear 团队 / Jira 项目票据（通过 `{key,id?,name}` 解析为 `ticket-context`）。
+  5. 提交票据的指导：路由规则、应应用哪些标签/问题类型以及默认团队（Linear）或项目（Jira）。
 
-  Then write `memory/config.json` with those values (including a populated `scan_channels`, `summary_channel`, and `default_destination`). `window_secs` should be roughly the schedule interval plus a small overlap (e.g. `3900` for an hourly schedule).
+  然后编写 `memory/config.json` 包含这些值（包括填充好的 `scan_channels`、`summary_channel` 和 `default_destination`）。`window_secs` 应该大致等于调度间隔加上一个小的重叠时间（例如，对于每小时调度，可以设置为 `3900`）。
 
-## Phase 2 — Secrets (NEVER COMMIT)
+## 阶段 2 — 密钥（切勿提交）
 
-The tool layer reads credentials from `memory/secrets.json`. Before writing any secret:
+工具层从 `memory/secrets.json` 读取凭据。在写入任何密钥之前：
 
-1. Create `.gitignore` at the automation root containing:
+1. 在自动化根目录创建 `.gitignore` 包含：
 
    ```
    memory/secrets.json
    memory/*.db
    ```
 
-2. Use `AskUser` to collect the credentials and write `memory/secrets.json`:
+2. 使用 `AskUser` 收集凭据并编写 `memory/secrets.json`：
 
-   - Always: `SLACK_BOT_TOKEN` — a Slack bot token with scopes to read the scan channels (`channels:history`, `groups:history`, `channels:read`, `channels:join`) and post to the summary channel (`chat:write`), plus `files:read` if screenshots are needed.
-   - When `ticket_system` is `linear`: `LINEAR_API_KEY`.
-   - When `ticket_system` is `jira`: `JIRA_BASE_URL` (e.g. `https://acme.atlassian.net`), `JIRA_EMAIL`, and `JIRA_API_TOKEN`.
+   - 始终：`SLACK_BOT_TOKEN` — 具有读取扫描频道（`channels:history`, `groups:history`, `channels:read`, `channels:join`）和发布到总结频道权限（`chat:write`），以及如果需要截图则具有 `files:read` 权限的 Slack 机器人令牌。
+   - 当 `ticket_system` 是 `linear` 时：`LINEAR_API_KEY`。
+   - 当 `ticket_system` 为 `jira` 时：配置 `JIRA_BASE_URL`（例如 `https://acme.atlassian.net`）、`JIRA_EMAIL` 和 `JIRA_API_TOKEN`。
 
-   Never echo the secret values back to the user, into logs, reports, or `VISUAL.html`.
+   绝不要将密钥值回显给用户、写入日志、报告或 `VISUAL.html` 中。
 
-## Phase 3 — Write the tool layer
+## 阶段 3 — 编写工具层
 
-Write the following file verbatim to `run_triage.py` at the automation root. Do NOT modify it — it is company-agnostic and reads everything from `memory/config.json` and `memory/secrets.json`. After writing it, run `python3 run_triage.py --help` and confirm it prints the usage text with no error.
+将以下文件原样写入自动化根目录的 `run_triage.py`。请勿修改它——它与具体公司无关，并会从 `memory/config.json` 和 `memory/secrets.json` 读取全部内容。写入后，请运行 `python3 run_triage.py --help`，确认帮助信息能够正常输出。
 
 ```python
 {{RUN_TRIAGE_PY}}
 ```
 
-## Phase 4 — Write HEARTBEAT.md
+## 阶段 4 — 编写 HEARTBEAT.md
 
-Write `HEARTBEAT.md` at the automation root. Use the template below, then **fill the "Routing & filing guidance" section with the user's `ticket_guidance` from `config.json`** (reproduce it, and expand it into concrete rules if helpful). Set the `schedule` frontmatter to the schedule the automation was created with (default `0 * * * *`). Keep the agent loop intact — it references the `ticket-*` subcommands of the tool layer, which abstract over Linear and Jira.
+在自动化根目录编写 `HEARTBEAT.md`。使用以下模板，然后 **用用户 `ticket_guidance` 中的 `config.json` 填充 "路由与归档指导" 部分**（复制它，并如果有助于具体化规则则扩展为具体的规则）。将 `schedule` 前置字段设置为自动化创建时的时间表（默认值 `0 * * * *`）。保持 agent 循环完整 — 它引用了工具层的 `ticket-*` 子命令，这些子命令抽象覆盖了 Linear 和 Jira。
 
 ```markdown
 ---
@@ -238,30 +238,23 @@ default/fallback destination rather than guessing.
   destinations available).
 ```
 
-## Phase 5 — Scaffold state, memory, and dashboard
+## 阶段 5 — 搭建状态、记忆和仪表盘
 
-1. **`memory/state.json`** — if the create prompt assigned a UUID, it is already
-   written; otherwise create `{ "id": "<uuid>", "runCount": 0 }`. The `id` is
-   permanent and must never change; `runCount` is bumped each run.
-2. **`memory/notes.md`** — create with a `## Tuning` heading and an empty
-   `## Run log` section.
-3. **`reports/`** — create the empty directory.
-4. **`VISUAL.html`** — write a self-contained "awaiting first run" placeholder
-   dashboard with `data-factory-visual-scaffold="true"` on the `<body>`. The
-   `finalize` subcommand regenerates this with real data on the first run, so a
-   simple branded placeholder is fine. Use the Factory accent `#EE6018` and the
-   automation name as the `<h1>`.
+1. **`memory/state.json`** — 如果创建提示词指定了一个 UUID，它已经
+   已编写；否则创建 `{ "id": "<uuid>", "runCount": 0 }`。`id` 是永久的，绝不能更改；每次运行时会增加 `runCount`。
+2. **`memory/notes.md`** — 创建一个带有 `## Tuning` 标题和空内容的文件。
+   `## Run log` 部分。
+3. **`reports/`** — 创建空目录。
+4. **`VISUAL.html`** — 编写一个自包含的“等待首次运行”占位符
+   带有 `data-factory-visual-scaffold="true"` 的仪表板 `<body>`。`finalize` 子命令会在首次运行时用真实数据重新生成它，所以简单的品牌占位符即可。使用 Factory 醒目标记 `#EE6018` 和自动化名称作为 `<h1>`.
 
-## Phase 6 — Verify
+## 阶段 6 — 验证
 
-- `python3 run_triage.py --help` prints usage with no error.
-- `memory/config.json` and `memory/secrets.json` exist and parse as JSON.
-- `.gitignore` excludes `memory/secrets.json` and `memory/*.db`.
-- `HEARTBEAT.md`, `run_triage.py`, `memory/state.json`, and `VISUAL.html` exist.
+- `python3 run_triage.py --help` 打印帮助信息且无错误。
+- `memory/config.json` 和 `memory/secrets.json` 存在并能解析为 JSON。
+- `.gitignore` 排除 `memory/secrets.json` 和 `memory/*.db`.
+- `HEARTBEAT.md`, `run_triage.py`, `memory/state.json` 和 `VISUAL.html` 存在。
 
-## Definition of done
+## 完成定义
 
-The automation root contains `HEARTBEAT.md`, `run_triage.py`, `VISUAL.html`,
-`.gitignore`, `memory/config.json`, `memory/state.json`, `memory/notes.md`, and
-an empty `reports/` directory; secrets are captured in `memory/secrets.json`
-(gitignored); and `run_triage.py --help` runs cleanly.
+自动化根目录包含 `HEARTBEAT.md`, `run_triage.py`, `VISUAL.html`, `.gitignore`, `memory/config.json`, `memory/state.json`, `memory/notes.md`, 以及一个空的 `reports/` 目录；秘密信息存储在 `memory/secrets.json`（被 .gitignore 排除）中；且 `run_triage.py --help` 能干净地运行。

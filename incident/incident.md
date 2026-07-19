@@ -1,106 +1,106 @@
 ---
 name: incident
-description: RCA runbook for alerts. Given an alert link (or prompted to provide one), identifies the alert type, verifies tooling/auth, and walks through root cause analysis using deep research. Persists learnings to incident-guidelines for future reuse.
+description: 根因分析 (RCA) 作业手册。给定一个警报链接（或提示用户提供一个），识别警报类型，验证工具/认证，并通过深入研究逐步进行根本原因分析。将所学内容保存到事故指南中以供将来重用。
 user-invocable: true
 ---
 
-# Incident Response
+# 事故响应
 
-**IMPORTANT:** This is a built-in skill -- its content is already in context. If the Observability Tools Reference table at the end of this file isn't fully visible, ask the user which observability tools are involved and continue. When a provided alert link is auth-gated or FetchUrl fails, do **not** ask the user to paste alert text yet -- install/auth the required tool first.
+**重要：**这是一个内置 skill，其内容已在上下文中。如果本文件末尾的可观测性工具参考表未完整显示，请询问用户涉及哪些可观测性工具，然后继续。当给出的告警链接需要认证或 FetchUrl 失败时，暂时**不要**要求用户粘贴告警文本，应先安装所需工具并完成认证。
 
-## How to Use
+## 如何使用
 
 ```
 /incident <alert-link>
 ```
 
-If no alert link is provided, ask the user for one.
+如果没有提供警报链接，请向用户提供一个。
 
-## Workflow
+## 工作流
 
-### Step 0: Check for Existing Guidelines
+### 步骤 0：检查现有指南
 
-1. Use the Skill tool to invoke `incident-guidelines`
-2. If the skill is found, parse the alert (Step 1) and check if it matches a known alert type in the guidelines
-   - **Match found**: follow that alert type's documented tools/interfaces/auth/repos. Verify prerequisites (Step 2), then proceed to RCA (Step 3).
-   - **No match found**: proceed with full discovery (Steps 1-3) as if no guidelines exist
-3. If the skill is not found (doesn't exist yet), proceed with full discovery (Steps 1-3)
+1. 使用 skill 工具调用 `incident-guidelines`
+2. 如果找到了 skill，解析告警（步骤1），检查是否与指导原则中的已知告警类型匹配。
+   - **找到匹配**：遵循该告警类型的文档工具/接口/认证/仓库。验证先决条件（步骤2），然后进行根本原因分析（步骤3）。
+   - **未找到匹配**：按照不存在指导原则的情况进行完整发现（步骤1-3）
+3. 如果找不到 skill（尚未存在），则按照不存在指导原则的情况进行完整发现（步骤1-3）
 
-### Step 1: Fetch and Classify the Alert (tool-first)
+### 步骤1：获取并分类告警（工具优先）
 
-1. Use FetchUrl to retrieve the alert content from the provided link (typically a Slack message)
-2. If FetchUrl fails or the link is auth-gated, infer the platform from the URL/domain, choose the preferred interface from the Observability Tools Reference (CLI > API > MCP), and proceed to Step 2 to install/authenticate **before** asking for manual paste.
-3. Once tool access is available, retrieve the alert details via the tool/API, then parse the alert to identify:
-   - Which observability tools generated or are referenced by the alert
-   - The error message, affected component, severity, and resolution status
-   - Any run IDs, job names, timestamps, service names, or responder info
-4. Identify which tools from the Observability Tools Reference table (at the end of this file) are needed to investigate
-5. Only if the user explicitly declines tool install/auth or the tool cannot access the data, ask the user to paste the alert text/details.
+1. 使用 FetchUrl 从提供的链接（通常是 Slack 消息）检索告警内容
+2. 如果 FetchUrl 失败或链接需要认证，请根据 URL/域名推断平台，从可观测性工具参考中选择首选接口（CLI > API > MCP），并**在要求用户手动粘贴之前**进入步骤2 完成安装/认证。
+3. 一旦获取到工具访问权限，通过工具/API 检索告警详情，然后解析告警以识别：
+   - 哪些可观测性工具生成或引用了该告警
+   - 错误消息、受影响组件、严重程度和解决状态
+   - 任何运行 ID、作业名称、时间戳、服务名或响应者信息
+4. 确定需要从可观测性工具参考表（文件末尾）中哪些工具进行调查
+5. 只有在用户明确拒绝工具安装/授权或工具无法访问数据时，才请用户粘贴警报文本/详情。
 
-### Step 2: Verify Prerequisites (install/auth before manual paste)
+### 步骤 2：验证先决条件（安装/授权后手动粘贴）
 
-Consult the Observability Tools Reference table to choose the preferred interface and auth method before prompting the user.
+在提示用户之前，请参阅可观测性工具参考表以选择首选界面和授权方法。
 
-**2.1 Tool availability (no auth yet)**
+**2.1 工具可用性（尚未进行授权）**
 
-- Run `which <cli>` or `<cli> --version` to check if CLIs are installed
-- Check if relevant MCP tools are available in the current session by looking for tool names with the expected prefix (e.g., `sentry___*` for Sentry MCP, `datadog___*` for Datadog MCP)
-- If missing, AskUser whether to install the preferred interface (list preferred first per the table)
-- Install (if approved), then verify version
+- 运行 `which <cli>` 或 `<cli> --version` 检查 CLIs 是否已安装
+- 通过查找具有预期前缀的工具名称来检查当前会话中是否包含相关 MCP 工具（例如，对于 Sentry MCP 为 `sentry___*`，对于 Datadog MCP 为 `datadog___*`）
+- 如果缺失，请询问用户是否要安装首选界面（根据表格列出首选项）
+- 如果批准，则验证版本
 
-**2.2 Authentication (after tool exists)**
+**2.2 授权（在工具存在之后）**
 
-- Check environment variables with `echo "\${VAR:+set}"`
-- Run documented test commands from the Observability Tools Reference table
-- Only use AskUser to prompt for auth setup if no existing credentials are found
+- 使用 `echo "\${VAR:+set}"` 检查环境变量
+- 运行可观测性工具参考表中的文档化测试命令
+- 如果没有找到现有凭据，请仅使用 AskUser 提示词进行授权设置
 
-> **WARNING:** If any required tool is not installed or not authenticated, warn the user that proceeding without it will produce an inaccurate or incomplete RCA. Strongly recommend installing and authenticating before continuing. If the user declines, proceed but clearly note the limitation.
+> **警告：**如果任何必需的工具未安装或未认证，请告知用户在没有这些工具的情况下继续将导致 RCA 不准确或不完整。强烈建议在继续之前安装并完成认证。如果用户拒绝，继续但明确注明此限制。
 
-**Auth selection rules:**
+**授权选择规则：**
 
-- If a tool has multiple interfaces (e.g., CLI and MCP), use AskUser to let the user choose. List the preferred interface first (per the table's "Preferred?" column).
-- Bias towards CLI when the platform has one.
-- For auth, use AskUser to let the user choose their auth method. List persistent auth first as the recommended choice, followed by ephemeral options. If there are multiple ephemeral methods (e.g., browser-based vs. device-code), list device-code before browser since it doesn't require a local browser.
-- Never ask for long-lived tokens or API keys. Exception: OAuth device-code or remote-bootstrap responses may be pasted once to complete auth. If the response includes an access/refresh token (or JWT), abort and restart with a safer method. Use AskUser to let them choose the auth method, then give the setup instructions as an assistant message and verify auth by running a test command.
-- If Slack is needed: check the Observability Tools Reference table for the auth method.
+- 如果一个工具具有多个接口（例如，命令行界面和 MCP），使用 AskUser 让用户选择。优先列出首选的接口（根据表格中的“首选？”列）。
+- 当平台有单一的命令行界面时，倾向于使用 CLI。
+- 对于认证，使用 AskUser 让用户选择他们的认证方法。优先列出持久化认证作为推荐的选择，然后是临时选项。如果有多个临时方法（例如，基于浏览器 vs. 设备码），请先列出设备码，因为它不需要本地浏览器。
+- 不要请求长期令牌或 API 密钥。例外情况：OAuth 设备码或远程启动响应可能仅需粘贴一次以完成认证。如果响应包括访问/刷新令牌（或 JWT），则应中止并使用更安全的方法重新开始。使用 AskUser 让他们选择认证方法，然后给出设置说明作为助手消息，并通过运行测试命令验证认证。
+- 如果需要 Slack：检查可观测性工具参考表中的认证方法。
 
-**Repo discovery:**
+**仓库发现：**
 
-- If the alert type was found in incident-guidelines, use the repos listed there -- no need to re-confirm with the user unless something looks wrong.
-- If this is a new alert type (no guidelines match), you MUST search for repos BEFORE prompting the user. First, search the local filesystem for relevant repos and use `gh repo list` / `glab project list` to discover repos in the org. Only AFTER you have gathered candidates, present your findings to the user via AskUser and ask them to confirm which are relevant and add any you missed. Do not present any RCA until the repo list is confirmed.
-- Clone any repos not already on the filesystem
-- Do a deep search of the codebase(s) to understand the RCA flow -- read AGENTS.md and README files in the repo(s) first, then trace from the error through instrumentation, route handlers, and dependency calls
+- 如果警报类型在事件指南中被找到，请使用该处列出的仓库——除非看起来有问题，否则无需再次与用户确认。
+- 如果这是一个新的警报类型（没有匹配的指南），你必须在提示用户之前搜索仓库。首先，在本地文件系统中搜索相关仓库，并使用 `gh repo list` / `glab project list` 发现组织中的仓库。只有在收集了候选者之后，通过 AskUser 向用户展示你的发现，请他们确认哪些是相关的并添加任何遗漏的仓库。在仓库列表被确认之前，不要展示任何根本原因分析（RCA）。
+- 克隆任何尚未在文件系统上的仓库
+- 对代码库进行深入搜索以理解 RCA 流程——首先阅读 repo(s) 中的 AGENTS.md 和 README 文件，然后从错误跟踪到仪器化、路由处理程序和依赖调用
 
-### Step 3: Investigate and Present RCA
+### 步骤 3：调查并呈现 RCA
 
-Perform deep research using the verified tools and repos to determine root cause. Do NOT follow a rigid script -- use the tools to query logs, metrics, traces, and code to build a comprehensive understanding.
+使用验证过的工具和仓库进行深入研究以确定根本原因。不要遵循固定的脚本——利用这些工具查询日志、指标、跟踪和代码来建立全面的理解。
 
-Present the RCA to the user including:
+向用户展示 RCA 包括：
 
-- The specific error and what caused it
-- Why it happened (contributing factors)
-- The failure pattern (intermittent vs consistent, frequency)
-- Impact scope
-- Suggested fixes
+- 具体的错误及其原因
+- 为什么会发生（促成因素）
+- 失败模式（间歇性 vs 一致，频率）
+- 影响范围
+- 建议的修复方案
 
-Iterate with the user until they are satisfied with the RCA.
+与用户迭代直到他们对 RCA 满意为止。
 
-### Step 4: Persist Guidelines
+### 步骤 4: 持久化指导方针
 
-After the user confirms the RCA is correct, only proceed with persisting guidelines if the investigation produced meaningful findings worth reusing (e.g., new tool/auth/repo mappings, non-obvious gotchas). If so, ask if they'd like to save the alert type mapping as reusable guidelines so future alerts of this type can be RCA'd without rediscovering from scratch. Otherwise, skip this step entirely.
+在用户确认 RCA 正确后，只有当调查产生了值得重用的有意义发现（例如，新的工具/认证/仓库映射、非显而易见的陷阱）时才继续持久化指导方针。如果是这样，请询问他们是否希望将警报类型映射保存为可重复使用的指导方针，以便未来此类警报可以进行 RCA 而无需从头开始重新发现。否则，跳过此步骤。
 
-If yes:
+如果回答是:
 
-1. If `incident-guidelines` skill doesn't exist yet, use AskUser to ask whether to write it at the project level (`.factory/skills/incident-guidelines/` in the repo, shared with teammates) or the user level (`~/.factory/skills/incident-guidelines/`, personal and cross-project)
-2. Create or update the `incident-guidelines/SKILL.md` file
-3. The guidelines entry should be concise -- list the alert type name, required tools/interfaces/auth methods, repos, and any generically-applicable gotchas discovered during the investigation
-4. Do NOT include inline bash scripts, hardcoded API URLs, account IDs, step-by-step commands, or RCA findings specific to the particular alert that was investigated
-5. Gotchas should be things that would help future investigations of the same alert type (e.g., auth quirks, tool-specific pitfalls, non-obvious configuration requirements, which dataset/table to query in which tool)
-6. Never include sensitive data (API keys, tokens, secrets) in the guidelines file
+1. 如果`incident-guidelines`skill 尚不存在，则使用 AskUser 询问是否在项目级别（仓库中的`.factory/skills/incident-guidelines/`，与队友共享）或用户级别（`~/.factory/skills/incident-guidelines/`，个人且跨项目）编写它
+2. 创建或更新`incident-guidelines/SKILL.md`文件
+3. 指导方针条目应简洁——列出警报类型名称、所需工具/接口/认证方法、仓库以及在调查过程中发现的任何通用陷阱
+4. 不要包含内联 bash 脚本、硬编码的 API URL、账户 ID、步骤命令或特定于所调查警报的 RCA 发现
+5. 陷阱应该是有助于未来相同警报类型的调查（例如，认证怪癖、工具特定的陷阱、非显而易见的配置要求，在哪个工具中查询哪个数据集/表）的事情
+6. 不要在指导方针文件中包含敏感数据（API 密钥、令牌、秘密）
 
-If the guidelines file already exists and the alert matches an existing type, only prompt the user to update the entry if this RCA surfaced meaningful new gotchas or corrections not already captured. Otherwise, skip persisting any new guidelines.
+如果指导方针文件已经存在且警报匹配现有类型，则仅在此次 RCA 揭示了新的有意义陷阱或修正未被捕捉时提示词用户更新条目。否则，跳过任何新指导方针的持久化
 
-The incident-guidelines skill should have the following frontmatter:
+incident-guidelinesskill 应具有以下 frontmatter:
 
 ```yaml
 ---
@@ -112,69 +112,69 @@ user-invocable: false
 
 ---
 
-## Observability Tools Reference
+## 可观测性工具参考
 
-This table is a non-exhaustive reference for common observability tools. Do not install interfaces for every tool listed -- only install and authenticate into the tools that the specific alert requires. The table is a lookup guide for which interface and auth method to use when a given tool is needed.
+这张表格是非详尽的可观测性工具参考。不要为列表中的每个工具安装接口——只需安装并验证特定警报所需的工具。表格是查找所需工具的接口和认证方法的指南。
 
-Preference follows CLI > API > MCP. All persistent auth methods are headless.
+首选顺序为 CLI > API > MCP。所有持久化认证方法都是无头的。
 
-Ephemeral auth annotations:
+临时授权注解：
 
-- `[headless]` = terminal-only, no browser needed
-- `[browser]` = requires opening a browser on the local machine
-- `[device-code]` = prints a URL + code to the terminal, no local browser needed. Run the command and present the output to the user -- it will contain a URL and code they can use to complete authentication on any device.
-- `[remote-bootstrap]` = two-step headless flow requiring a persistent process. Each invocation generates a unique PKCE state, so you MUST keep the original process alive -- do NOT run the command twice or pipe into a new process. Steps:
-  1. Write a Python script (stdlib only, no pip installs) using `subprocess.Popen(stdin=subprocess.PIPE, stdout=subprocess.PIPE, env={...,'PYTHONUNBUFFERED':'1'})`
-  2. Read stdout char-by-char with `p.stdout.read(1)` until the prompt appears
-  3. Extract the bootstrap command from the output and present it to the user via AskUser -- they run it on a machine with a browser and paste back the output
-  4. Feed the response with `p.stdin.write(response + '\n'); p.stdin.flush()`
+- `[headless]` = 仅终端，无需浏览器
+- `[browser]` = 需要在本地机器上打开浏览器
+- `[device-code]` = 在终端中打印 URL + 代码，无需本地浏览器。运行命令并展示输出给用户——其中包含他们可以在任何设备上完成认证的 URL 和代码。
+- `[remote-bootstrap]` = 两步无头流程，需要持久化进程。每次调用都会生成一个唯一的 PKCE 状态，因此您必须保持原始进程存活——不要两次运行该命令或将其管道到新进程中。步骤如下：
+  1. 编写一个 Python 脚本（仅使用标准库，无需 pip 安装）使用 `subprocess.Popen(stdin=subprocess.PIPE, stdout=subprocess.PIPE, env={...,'PYTHONUNBUFFERED':'1'})`
+  2. 逐字符读取 stdout 使用 `p.stdout.read(1)` 直到提示词出现
+  3. 从输出中提取启动命令并通过 AskUser 展示给用户——他们在有浏览器的机器上运行它并粘贴回输出
+  4. 使用 `p.stdin.write(response + '\n'); p.stdin.flush()` 传递响应
 
-| Tool                          | Interface                      | Preferred? | Persistent Auth `[headless]`                                                                                                    | Ephemeral Auth                                                        |
+| 工具                          | 接口                      | 首选？ | 持久认证 `[headless]`                                                                                                    | 临时认证                                                        |
 | ----------------------------- | ------------------------------ | :--------: | ------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| Slack (read threads/messages) | Factory integration (FetchUrl) |    Yes     | Pre-configured at https://app.factory.ai/settings/integrations. Test: FetchUrl a Slack link; prompt to connect only if it fails | None                                                                  |
-| Sentry                        | CLI (`sentry`)                 |    Yes     | `SENTRY_AUTH_TOKEN`                                                                                                             | `sentry auth login` `[device-code]`                                   |
-| Sentry                        | MCP (`sentry-mcp`)             |     No     | `SENTRY_AUTH_TOKEN` (stdio transport)                                                                                           | MCP OAuth 2.0 `[browser]` (cloud transport)                           |
-| Datadog                       | API                            |    Yes     | `DD-API-KEY` + `DD-APPLICATION-KEY` headers                                                                                     | None                                                                  |
-| Datadog                       | MCP                            |     No     | `DD_API_KEY`+`DD_APP_KEY`                                                                                                       | MCP OAuth 2.0 `[browser]`                                             |
-| AWS                           | CLI (`aws`)                    |    Yes     | `AWS_ACCESS_KEY_ID`+`AWS_SECRET_ACCESS_KEY`                                                                                     | `aws sso login` `[browser]` / `--no-browser` `[device-code]`          |
-| GCP                           | CLI (`gcloud`/`bq`)            |    Yes     | `GOOGLE_APPLICATION_CREDENTIALS` (SA key JSON)                                                                                  | `gcloud auth login` `[browser]` / `--no-browser` `[remote-bootstrap]` |
-| Grafana                       | API                            |    Yes     | `Authorization: Bearer <sa-token>`                                                                                              | None                                                                  |
-| Grafana                       | MCP (`mcp-grafana`)            |     No     | `GRAFANA_SERVICE_ACCOUNT_TOKEN` (+ `GRAFANA_URL`)                                                                               | None                                                                  |
-| Elasticsearch                 | API                            |    Yes     | `Authorization: ApiKey <base64>` or Basic Auth                                                                                  | None                                                                  |
-| Elasticsearch                 | MCP                            |     No     | `ES_API_KEY` / `ELASTICSEARCH_USERNAME`+`PASSWORD`                                                                              | None                                                                  |
-| PagerDuty                     | CLI (`pd`)                     |    Yes     | `pd auth:set --token <token>`                                                                                                   | `pd auth:web` `[browser]`                                             |
-| PagerDuty                     | MCP                            |     No     | `PAGERDUTY_API_TOKEN`                                                                                                           | None                                                                  |
-| Prometheus                    | CLI (`promtool`)               |    Yes     | Bearer token / basic auth via `--http.config.file` YAML                                                                         | None                                                                  |
-| Splunk (on-prem)              | CLI (`splunk`)                 |    Yes     | Auth Token via `-token` flag                                                                                                    | `splunk login` (user/pass prompt) `[headless]`                        |
-| Splunk (Cloud)                | API                            |    Yes     | `Authorization: Bearer <token>`                                                                                                 | None                                                                  |
-| Splunk (Cloud)                | MCP                            |     No     | `SPLUNK_TOKEN` + `SPLUNK_URL`                                                                                                   | None                                                                  |
-| New Relic                     | CLI (`newrelic`)               |    Yes     | `NEW_RELIC_API_KEY` via `newrelic profile add`                                                                                  | None                                                                  |
-| New Relic                     | MCP                            |     No     | `NEW_RELIC_API_KEY` + `NEW_RELIC_ACCOUNT_ID`                                                                                    | None                                                                  |
-| Loki                          | CLI (`logcli`)                 |    Yes     | `LOKI_BEARER_TOKEN` / `LOKI_USERNAME`+`LOKI_PASSWORD`                                                                           | None                                                                  |
-| Dynatrace                     | API                            |    Yes     | `Authorization: Api-Token <token>`                                                                                              | None                                                                  |
-| Dynatrace                     | MCP                            |     No     | `DT_API_TOKEN` / `DT_CLIENT_ID`+`DT_CLIENT_SECRET`                                                                              | MCP OAuth `[browser]`                                                 |
-| Axiom                         | CLI (`axiom`)                  |    Yes     | `AXIOM_TOKEN`                                                                                                                   | `axiom auth login` `[browser]`                                        |
-| Axiom                         | MCP (`mcp.axiom.co`)           |     No     | `AXIOM_TOKEN`                                                                                                                   | None                                                                  |
-| Databricks                    | CLI (`databricks`)             |    Yes     | `DATABRICKS_TOKEN` / `DATABRICKS_CLIENT_ID`+`SECRET`                                                                            | `databricks auth login` `[browser]`                                   |
-| Opsgenie                      | API                            |    Yes     | `Authorization: GenieKey <key>`                                                                                                 | None                                                                  |
-| Honeycomb                     | API                            |    Yes     | `X-Honeycomb-Team: <api-key>`                                                                                                   | None                                                                  |
-| Honeycomb                     | MCP                            |     No     | `HONEYCOMB_API_KEY`                                                                                                             | MCP OAuth 2.0 `[browser]`                                             |
-| Snowflake                     | CLI (`snowsql`/`snow`)         |    Yes     | Key pair (`private_key_path`) / `SNOWSQL_PWD`                                                                                   | `--authenticator externalbrowser` `[browser]`                         |
-| Jaeger                        | API                            |    Yes     | No built-in auth (reverse proxy dependent)                                                                                      | None                                                                  |
-| Bugsnag                       | API                            |    Yes     | `Authorization: token <token>`                                                                                                  | None                                                                  |
-| Sumo Logic                    | API                            |    Yes     | HTTP Basic Auth (`accessId:accessKey`)                                                                                          | None                                                                  |
-| Rollbar                       | API                            |    Yes     | `X-Rollbar-Access-Token` header                                                                                                 | None                                                                  |
-| incident.io                   | API                            |    Yes     | `Authorization: Bearer <api-key>`                                                                                               | None                                                                  |
-| incident.io                   | MCP                            |     No     | `INCIDENT_IO_API_KEY`                                                                                                           | MCP OAuth 2.0 `[browser]`                                             |
-| Rootly                        | API                            |    Yes     | `Authorization: Bearer <token>`                                                                                                 | None                                                                  |
-| Rootly                        | MCP                            |     No     | `ROOTLY_API_TOKEN`                                                                                                              | None                                                                  |
-| Betterstack                   | API                            |    Yes     | `Authorization: Bearer <token>`                                                                                                 | None                                                                  |
-| Betterstack                   | MCP                            |     No     | `BETTER_STACK_API_TOKEN`                                                                                                        | None                                                                  |
-| Papertrail                    | CLI (`papertrail`)             |    Yes     | `PAPERTRAIL_API_TOKEN`                                                                                                          | None                                                                  |
-| Honeybadger                   | CLI (`hb`)                     |    Yes     | `HONEYBADGER_PERSONAL_AUTH_TOKEN` / `HONEYBADGER_API_KEY`                                                                       | None                                                                  |
-| Honeybadger                   | MCP                            |     No     | `HONEYBADGER_PERSONAL_AUTH_TOKEN`                                                                                               | None                                                                  |
-| Zipkin                        | API                            |    Yes     | No built-in auth (reverse proxy dependent)                                                                                      | None                                                                  |
-| FireHydrant                   | API                            |    Yes     | `Authorization: Bearer <token>`                                                                                                 | None                                                                  |
-| Statuspage                    | API                            |    Yes     | `Authorization: OAuth <key>`                                                                                                    | None                                                                  |
-| Lightstep                     | API                            |    Yes     | `Authorization: Bearer <key>`                                                                                                   | None                                                                  |
-| VictorOps                     | API                            |    Yes     | `X-VO-Api-Key`+`X-VO-Api-Id`                                                                                                    | None                                                                  |
+| Slack（读取话题/消息） | Factory 集成 (FetchUrl) |    是     | 预配置在 https://app.factory.ai/settings/integrations. 使用 FetchUrl 获取 Slack 链接；仅在失败时提示词连接 | 无                                                                  |
+| Sentry                        | CLI (`sentry`)                 |    是     | `SENTRY_AUTH_TOKEN`                                                                                                             | `sentry auth login` `[device-code]`                                   |
+| Sentry                        | MCP (`sentry-mcp`)             |     否     | `SENTRY_AUTH_TOKEN` (stdio 传输)                                                                                           | MCP OAuth 2.0 `[browser]` (云传输)                           |
+| Datadog                       | API                            |    是     | `DD-API-KEY` + `DD-APPLICATION-KEY` 头部                                                                                     | 无                                                                  |
+| Datadog                       | MCP                            |     否     | `DD_API_KEY`+`DD_APP_KEY`                                                                                                       | MCP OAuth 2.0 `[browser]`                                             |
+| AWS                           | CLI (`aws`)                    |    是     | `AWS_ACCESS_KEY_ID`+`AWS_SECRET_ACCESS_KEY`                                                                                     | `aws sso login` `[browser]` / `--no-browser` `[device-code]`          |
+| GCP                           | CLI (`gcloud`/`bq`)            |    是     | `GOOGLE_APPLICATION_CREDENTIALS` (SA key JSON)                                                                                  | `gcloud auth login` `[browser]` / `--no-browser` `[remote-bootstrap]` |
+| Grafana                       | API                            |    是     | `Authorization: Bearer <sa-token>`                                                                                              | 无                                                                  |
+| Grafana                       | MCP (`mcp-grafana`)            |     否     | `GRAFANA_SERVICE_ACCOUNT_TOKEN` (+ `GRAFANA_URL`)                                                                               | 无                                                                  |
+| Elasticsearch                 | API                            |    是     | `Authorization: ApiKey <base64>` 或 Basic Auth                                                                                  | 无                                                                  |
+| Elasticsearch                 | MCP                            |     否     | `ES_API_KEY` / `ELASTICSEARCH_USERNAME`+`PASSWORD`                                                                              | 无                                                                  |
+| PagerDuty                     | CLI (`pd`)                     |    是     | `pd auth:set --token <token>`                                                                                                   | `pd auth:web` `[browser]`                                             |
+| PagerDuty                     | MCP                            |     否     | `PAGERDUTY_API_TOKEN`                                                                                                           | 无                                                                  |
+| Prometheus                    | CLI (`promtool`)               |    是     | Bearer 令牌/基本认证通过`--http.config.file` YAML                                                                         | 无                                                                  |
+| Splunk（本地部署）              | CLI (`splunk`)                 |    是     | Auth Token via `-token` 标志                                                                                                    | `splunk login` (user/pass 提示词) `[headless]`                        |
+| Splunk (Cloud)                | API                            |    是     | `Authorization: Bearer <token>`                                                                                                 | 无                                                                  |
+| Splunk (Cloud)                | MCP                            |     否     | `SPLUNK_TOKEN` + `SPLUNK_URL`                                                                                                   | 无                                                                  |
+| New Relic                     | CLI (`newrelic`)               |    是     | 通过 `NEW_RELIC_API_KEY` 设置 `newrelic profile add`                                                                                  | 无                                                                  |
+| New Relic                     | MCP                            |     否     | `NEW_RELIC_API_KEY` + `NEW_RELIC_ACCOUNT_ID`                                                                                    | 无                                                                  |
+| Loki                          | CLI (`logcli`)                 |    是     | `LOKI_BEARER_TOKEN` / `LOKI_USERNAME`+`LOKI_PASSWORD`                                                                           | 无                                                                  |
+| Dynatrace                     | API                            |    是     | `Authorization: Api-Token <token>`                                                                                              | 无                                                                  |
+| Dynatrace                     | MCP                            |     否     | `DT_API_TOKEN` / `DT_CLIENT_ID`+`DT_CLIENT_SECRET`                                                                              | MCP OAuth `[browser]`                                                 |
+| Axiom                         | CLI (`axiom`)                  |    是     | `AXIOM_TOKEN`                                                                                                                   | `axiom auth login` `[browser]`                                        |
+| Axiom                         | MCP (`mcp.axiom.co`)           |     否     | `AXIOM_TOKEN`                                                                                                                   | 无                                                                  |
+| Databricks                    | CLI (`databricks`)             |    是     | `DATABRICKS_TOKEN` / `DATABRICKS_CLIENT_ID`+`SECRET`                                                                            | `databricks auth login` `[browser]`                                   |
+| Opsgenie                      | API                            |    是     | `Authorization: GenieKey <key>`                                                                                                 | 无                                                                  |
+| 蜂窝                     | API                            |    是     | `X-Honeycomb-Team: <api-key>`                                                                                                   | 无                                                                  |
+| 蜂窝                     | MCP                            |     否     | `HONEYCOMB_API_KEY`                                                                                                             | MCP OAuth 2.0 `[browser]`                                             |
+| 雪崩                     | CLI (`snowsql`/`snow`)         |    是     | 密钥对（`private_key_path`） / `SNOWSQL_PWD`                                                                                   | `--authenticator externalbrowser` `[browser]`                         |
+| Jaeger                        | API                            |    是     | 无内置认证（依赖反向代理）                                                                                      | 无                                                                  |
+| Bugsnag                       | API                            |    是     | `Authorization: token <token>`                                                                                                  | 无                                                                  |
+| Sumo Logic                    | API                            |    是     | HTTP Basic 认证（`accessId:accessKey`）                                                                                          | 无                                                                  |
+| Rollbar                       | API                            |    是     | `X-Rollbar-Access-Token` 头部                                                                                                 | 无                                                                  |
+| incident.io                   | API                            |    是     | `Authorization: Bearer <api-key>`                                                                                               | 无                                                                  |
+| incident.io                   | MCP                            |     否     | `INCIDENT_IO_API_KEY`                                                                                                           | MCP OAuth 2.0 `[browser]`                                             |
+| Rootly                        | API                            |    是     | `Authorization: Bearer <token>`                                                                                                 | 无                                                                  |
+| Rootly                        | MCP                            |     否     | `ROOTLY_API_TOKEN`                                                                                                              | 无                                                                  |
+| Betterstack                   | API                            |    是     | `Authorization: Bearer <token>`                                                                                                 | 无                                                                  |
+| Betterstack                   | MCP                            |     否     | `BETTER_STACK_API_TOKEN`                                                                                                        | 无                                                                  |
+| Papertrail                    | CLI (`papertrail`)             |    是     | `PAPERTRAIL_API_TOKEN`                                                                                                          | 无                                                                  |
+| 胡狼蜂蜜                   | 命令行工具 (`hb`)                     |    是     | `HONEYBADGER_PERSONAL_AUTH_TOKEN` / `HONEYBADGER_API_KEY`                                                                       | 无                                                                  |
+| 胡狼蜂蜜                   | MCP                            |     否     | `HONEYBADGER_PERSONAL_AUTH_TOKEN`                                                                                               | 无                                                                  |
+| Zipkin                        | API                            |    是     | 无内置认证（依赖反向代理）                                                                                      | 无                                                                  |
+| FireHydrant                   | API                            |    是     | `Authorization: Bearer <token>`                                                                                                 | 无                                                                  |
+| Statuspage                    | API                            |    是     | `Authorization: OAuth <key>`                                                                                                    | 无                                                                  |
+| Lightstep                     | API                            |    是     | `Authorization: Bearer <key>`                                                                                                   | 无                                                                  |
+| VictorOps                     | API                            |    是     | `X-VO-Api-Key`+`X-VO-Api-Id`                                                                                                    | 无                                                                  |
