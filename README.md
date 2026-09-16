@@ -2,86 +2,118 @@
 
 从 `droid` CLI 二进制文件 (`/opt/homebrew/bin/droid`, Mach-O arm64) 中提取。
 
-总计：**23 个提取的 skill**，分布在 9 个类别中。
+类别目录是 catalog 真源；本 README 是投影。总计：**23 个提取的 skill**，分布在 9 个类别中。
 
-## 类别分解
+本仓库真实形状是 9 个类别目录，加上 [`dependencies.md`](dependencies.md)、[`tools/`](tools/)、[`docs/`](docs/)。
 
-### automation/
+## 仓库树
+
+```
+.
+├── README.md
+├── dependencies.md
+├── docs/
+│   └── translation-profile.zh-CN.md
+├── tools/
+│   └── agent_browser.schema.json
+├── automation/
+├── documents/
+├── incident/
+├── installers/
+├── missions/
+├── qa/
+├── review/
+├── session/
+└── wiki/
+```
+
+## 类别
+
+### [automation/](automation/)
+
 浏览器、终端和桌面自动化 skill。
 
-| 文件 | 大小 | 行数 | 描述 |
-|------|------|-------|-------------|
-| `agent-browser.md` | 19 KB | 500 | 通过 Chrome DevTools 协议自动化浏览器和 Electron 应用（VS Code, Slack, Discord, Figma, Notion, Spotify） |
-| `tuistory.md` | 14 KB | 293 | 类似于 Playwright 的 TUI 测试框架 —— 确定性启动、键盘输入、尺寸检查、证据捕获 |
-| `figma-mcp-helper.md` | 26 KB | 57 | 促进 Figma MCP 集成 —— 检测 Figma URL 和图像并指导安装 |
+| Skill | 路径 | 描述 |
+|------|------|------|
+| [agent-browser](automation/agent-browser.md) | `automation/agent-browser.md` | 通过 Chrome DevTools 协议自动化浏览器和 Electron 应用（VS Code, Slack, Discord, Figma, Notion, Spotify） |
+| [tuistory](automation/tuistory.md) | `automation/tuistory.md` | 类似于 Playwright 的 TUI 测试框架 —— 确定性启动、键盘输入、尺寸检查、证据捕获 |
+| [figma-mcp-helper](automation/figma-mcp-helper.md) | `automation/figma-mcp-helper.md` | 促进 Figma MCP 集成 —— 检测 Figma URL 和图像并指导安装 |
 
-### documents/
+### [documents/](documents/)
+
 办公文档生成 skill。
 
-| 文件 | 大小 | 行数 | 描述 |
-|------|------|-------|-------------|
-| `excel.md` | 7 KB | 156 | 生成精美的 Excel 表格 (.xlsx) |
-| `pdf-document.md` | 4 KB | 106 | 生成精美的 PDF 文档（报告、发票、简历、信件） |
-| `powerpoint.md` | 4 KB | 114 | 生成精美的 PowerPoint 演示文稿（幻灯片、路演幻灯片） |
+| Skill | 路径 | 描述 |
+|------|------|------|
+| [excel](documents/excel.md) | `documents/excel.md` | 生成精美的 Excel 表格 (.xlsx) |
+| [pdf-document](documents/pdf-document.md) | `documents/pdf-document.md` | 生成精美的 PDF 文档（报告、发票、简历、信件） |
+| [powerpoint](documents/powerpoint.md) | `documents/powerpoint.md` | 生成精美的 PowerPoint 演示文稿（幻灯片、路演幻灯片） |
 
-### incident/
+### [incident/](incident/)
+
 事故响应和根本原因分析 skill。
 
-| 文件 | 大小 | 行数 | 描述 |
-|------|------|-------|-------------|
-| `incident.md` | 24 KB | 180 | 事件根本原因分析手册 — 识别警报类型，验证工具/认证，逐步进行根本原因分析 |
+| Skill | 路径 | 描述 |
+|------|------|------|
+| [incident](incident/incident.md) | `incident/incident.md` | 事件根本原因分析手册 — 识别警报类型，验证工具/认证，逐步进行根本原因分析 |
 
-### installers/
+### [installers/](installers/)
+
 CI/CD 配置和安装 skill。
 
-| 文件 | 大小 | 行数 | 描述 |
-|------|------|-------|-------------|
-| `install-code-review.md` | 51 KB | 1025 | 在 GitHub/GitLab 上安装自动化代码审查（单个仓库或组织级别） |
-| `install-triage.md` | 21 KB | 267 | 构建计划的 Slack 问题处理自动化机器人 |
-| `install-wiki.md` | 4 KB | 118 | 安装 CI 行动，每推送一次自动刷新 Wiki |
+| Skill | 路径 | 描述 |
+|------|------|------|
+| [install-code-review](installers/install-code-review.md) | `installers/install-code-review.md` | 在 GitHub/GitLab 上安装自动化代码审查（单个仓库或组织级别） |
+| [install-triage](installers/install-triage.md) | `installers/install-triage.md` | 构建计划的 Slack 问题处理自动化机器人 |
+| [install-wiki](installers/install-wiki.md) | `installers/install-wiki.md` | 安装 CI 行动，每推送一次自动刷新 Wiki |
 
-### missions/
+### [missions/](missions/)
+
 Factory Missions 编排 skill（规划、工人定义、操作手册）。
 
-| 文件 | 大小 | 行数 | 描述 |
-|------|------|-------|-------------|
-| `mission-planning.md` | 116 KB | 1153 | 引导协调器在与用户规划阶段进行交互 |
-| `define-mission-skills.md` | 93 KB | 856 | 引导协调器设计工作类型及其 skill |
-| `refactoring-playbook.md` | 37 KB | 351 | 代码现代化、架构迁移、大规模重构的作业指南 |
-| `tui-application-playbook.md` | 30 KB | 148 | TUI 应用程序任务的作业指南——具有交互式界面的 CLI 工具 |
+| Skill | 路径 | 描述 |
+|------|------|------|
+| [mission-planning](missions/mission-planning.md) | `missions/mission-planning.md` | 引导协调器在与用户规划阶段进行交互 |
+| [define-mission-skills](missions/define-mission-skills.md) | `missions/define-mission-skills.md` | 引导协调器设计工作类型及其 skill |
+| [refactoring-playbook](missions/refactoring-playbook.md) | `missions/refactoring-playbook.md` | 代码现代化、架构迁移、大规模重构的作业指南 |
+| [tui-application-playbook](missions/tui-application-playbook.md) | `missions/tui-application-playbook.md` | TUI 应用程序任务的作业指南——具有交互式界面的 CLI 工具 |
 
-### qa/
-质量保证设置和自动化。
+### [qa/](qa/)
 
-| 文件 | 大小 | 行数 | 描述 |
-|------|------|-------|-------------|
-| `install-qa.md` | 43 KB | 771 | 使用模块化子 skill、CI 工作流和报告模板设置自动化 QA 测试 |
+质量保证设置和自动化。`install-qa.md` 留在 `qa/`，不搬进 `installers/`。
 
-### review/
+| Skill | 路径 | 描述 |
+|------|------|------|
+| [install-qa](qa/install-qa.md) | `qa/install-qa.md` | 使用模块化子 skill、CI 工作流和报告模板设置自动化 QA 测试 |
+
+### [review/](review/)
+
 代码审查和分析 skill。
 
-| 文件 | 大小 | 行数 | 描述 |
-|------|------|-------|-------------|
-| `review.md` | 17 KB | 298 | 审查代码更改并识别高置信度、可操作的错误 |
-| `security-review.md` | 27 KB | 365 | 使用 STRIDE、OWASP Top 10、OWASP LLM Top 10 和供应链分析的安全重点代码审查 |
-| `deep-security-review.md` | 187 KB | 2754 | 以正确性和深度为先的安全审计，采用异构多模型 jury、3-pass 基础层和条件升级层 |
-| `simplify.md` | 4 KB | 53 | 审查已更改的代码以确保重用、质量和效率，然后修复发现的问题 |
+| Skill | 路径 | 描述 |
+|------|------|------|
+| [review](review/review.md) | `review/review.md` | 审查代码更改并识别高置信度、可操作的错误 |
+| [security-review](review/security-review.md) | `review/security-review.md` | 使用 STRIDE、OWASP Top 10、OWASP LLM Top 10 和供应链分析的安全重点代码审查 |
+| [deep-security-review](review/deep-security-review.md) | `review/deep-security-review.md` | 以正确性和深度为先的安全审计，采用异构多模型 jury、3-pass 基础层和条件升级层 |
+| [simplify](review/simplify.md) | `review/simplify.md` | 审查已更改的代码以确保重用、质量和效率，然后修复发现的问题 |
 
-### session/
+### [session/](session/)
+
 会话管理和导航。
 
-| 文件 | 大小 | 行数 | 描述 |
-|------|------|-------|-------------|
-| `session-navigation.md` | 4 KB | 122 | 导航、搜索和管理 Droid 会话——列出、搜索历史、恢复、获取详情 |
+| Skill | 路径 | 描述 |
+|------|------|------|
+| [session-navigation](session/session-navigation.md) | `session/session-navigation.md` | 导航、搜索和管理 Droid 会话——列出、搜索历史、恢复、获取详情 |
 
-### wiki/
+### [wiki/](wiki/)
+
 自动生成、浏览 Wiki 和生成视频的 skill。
 
-| 文件 | 大小 | 行数 | 描述 |
-|------|------|-------|-------------|
-| `wiki.md` | 79 KB | 1410 | 生成全面的代码库文档（包含子 agent 委派的完整生成流水线） |
-| `wiki-video-gen.md` | 22 KB | 430 | 为仓库 Wiki 生成带有 Factory 品牌的 HyperFrames 视频概述 |
-| `browse-wiki.md` | 6 KB | 148 | 搜索和阅读 Wiki 文档 — `droid wiki-read` / `droid wiki-search` 命令 |
+| Skill | 路径 | 描述 |
+|------|------|------|
+| [wiki](wiki/wiki.md) | `wiki/wiki.md` | 生成全面的代码库文档（包含子 agent 委派的完整生成流水线） |
+| [wiki-video-gen](wiki/wiki-video-gen.md) | `wiki/wiki-video-gen.md` | 为仓库 Wiki 生成带有 Factory 品牌的 HyperFrames 视频概述 |
+| [browse-wiki](wiki/browse-wiki.md) | `wiki/browse-wiki.md` | 搜索和阅读 Wiki 文档 — `droid wiki-read` / `droid wiki-search` 命令 |
 
 ---
 
@@ -89,13 +121,15 @@ Factory Missions 编排 skill（规划、工人定义、操作手册）。
 
 一些 skill 依赖于外部 CLI 工具。请参阅 **[dependencies.md](dependencies.md)** 以获取完整列表，包括捆绑工具 (`agent-browser`, `ripgrep`) 和按需安装工具 (`tuistory`)。
 
-`tools/` 目录包含 `agent_browser` 的 LLM 函数调用模式 — 唯一内置工具以 Anthropic 风格的 JSON 函数定义格式存储。核心工具（读取、编辑、执行等）在 TypeScript 中程序化定义，而不是嵌入式 JSON。
+[`tools/agent_browser.schema.json`](tools/agent_browser.schema.json) 是 `agent_browser` 的 LLM 函数调用模式 — 唯一内置工具以 Anthropic 风格的 JSON 函数定义格式存储。核心工具（读取、编辑、执行等）在 TypeScript 中程序化定义，而不是嵌入式 JSON。
+
+中文化基线见 [`docs/translation-profile.zh-CN.md`](docs/translation-profile.zh-CN.md)。
 
 ---
 
-## 不可提取 (程序化 / 背景)
+## 不可提取（不是本仓库文件）
 
-这些 skill 在系统提醒中被提及为可用 skill，但 **未以独立 YAML skill 定义形式存储** 在二进制文件中。它们可能通过程序化定义、捆绑在其他 skill 内或动态生成。
+这些名字会出现在 Droid 系统提醒里，但 **不是本 checkout 里的文件**。仓库里没有 `droid-control.md`，也没有下面这些名字对应的 skill 文件。它们可能是程序化定义、捆绑在其他 skill 内，或动态生成。不要把这一节当成第三套目录。
 
 ### droid-control 工作流 skill（不会直接调用）
 
@@ -118,7 +152,7 @@ Factory Missions 编排 skill（规划、工人定义、操作手册）。
 
 ### 自定义 droid（子 agent）
 
-这些是存储在 `.factory/droids/` 或 `~/.factory/droids/` 中的自定义 droid 配置，并非内置于二进制文件：
+这些是存储在 `.factory/droids/` 或 `~/.factory/droids/` 中的自定义 droid 配置，并非内置于二进制文件，也不是本仓库文件：
 
 - `worker` — 通用任务分派代理 droid
 - `scrutiny-feature-reviewer` — 在任务验证期间对单一功能进行代码审查
