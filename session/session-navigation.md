@@ -20,10 +20,10 @@ description: |
 
 ```
 ~/.factory/sessions/
-├── -Users-enoreyes-code-work-myapp/
+├── -Users-<you>-code-work-myapp/
 │   ├── <uuid>.jsonl
 │   └── <uuid>.settings.json
-├── -Users-enoreyes-code-projects-api/
+├── -Users-<you>-code-projects-api/
 │   ├── <uuid>.jsonl
 │   └── <uuid>.settings.json
 └── ...
@@ -50,11 +50,15 @@ ls ~/.factory/sessions/ | grep "myapp"
 ### 查看项目的最近会话
 
 ```bash
-# List sessions by date for a project
-ls -lt ~/.factory/sessions/-Users-enoreyes-code-work-myapp/
+# List project folders first, then pick a name from that list
+ls ~/.factory/sessions/
+project=$(ls ~/.factory/sessions/ | grep "myapp" | head -1)
+
+# List sessions by date for that project
+ls -lt ~/.factory/sessions/"$project"/
 
 # Get titles of recent sessions
-for f in $(ls -t ~/.factory/sessions/-Users-enoreyes-code-work-myapp/*.jsonl | head -10); do
+for f in $(ls -t ~/.factory/sessions/"$project"/*.jsonl | head -10); do
   echo "=== $f ==="
   head -1 "$f" | jq -r '.title // "Untitled"'
 done
@@ -66,11 +70,14 @@ done
 # Search across ALL sessions
 rg "authentication" ~/.factory/sessions/
 
-# Search within a specific project
-rg "bug fix" ~/.factory/sessions/-Users-enoreyes-code-work-myapp/
+# Search within a project folder from the list above
+ls ~/.factory/sessions/
+project=$(ls ~/.factory/sessions/ | grep "myapp" | head -1)
+rg "bug fix" ~/.factory/sessions/"$project"/
 
 # See matches in context
-rg -C 2 "login" ~/.factory/sessions/-Users-enoreyes-code-projects-api/
+api=$(ls ~/.factory/sessions/ | grep "api" | head -1)
+rg -C 2 "login" ~/.factory/sessions/"$api"/
 ```
 
 ### 找到有关某个主题的项目会话
@@ -85,14 +92,17 @@ rg -l "redis" ~/.factory/sessions/ | cut -d'/' -f1-5 | sort -u
 一旦找到了会话文件：
 
 ```bash
+ls ~/.factory/sessions/
+project=$(ls ~/.factory/sessions/ | grep "myapp" | head -1)
+
 # The metadata (title, working directory)
-head -1 ~/.factory/sessions/-Users-enoreyes-code-work-myapp/<uuid>.jsonl | jq .
+head -1 ~/.factory/sessions/"$project"/<uuid>.jsonl | jq .
 
 # Session stats (model, tokens, duration)
-cat ~/.factory/sessions/-Users-enoreyes-code-work-myapp/<uuid>.settings.json | jq .
+cat ~/.factory/sessions/"$project"/<uuid>.settings.json | jq .
 
 # How long was this conversation?
-wc -l ~/.factory/sessions/-Users-enoreyes-code-work-myapp/<uuid>.jsonl
+wc -l ~/.factory/sessions/"$project"/<uuid>.jsonl
 ```
 
 用户消息带有 `"role": "user"`，助手响应带有 `"role": "assistant"`。工具调用显示了运行的命令和被修改的文件。
