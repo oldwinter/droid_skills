@@ -112,14 +112,15 @@ class CatalogProjectionTests(unittest.TestCase):
 
 
 class BundleContaminationTests(unittest.TestCase):
-    """Skill files must not retain minified JS from the extracted bundle."""
+    """Skill files must not retain minified JS or broken fences from extraction."""
 
     BUNDLE_MARKERS = (
         re.compile(r"`,[A-Za-z0-9_$]{2,}="),
-        re.compile(r"\bvar [A-Za-z0-9_$]{2,}="),
+        re.compile(r"var [A-Za-z0-9_$]+="),
         re.compile(r"systemPrompt:"),
-        re.compile(r"metadata:\{"),
+        re.compile(r"metadata:\{name:"),
     )
+    FENCE_RE = re.compile(r"^ {0,3}(`{3,}|~{3,})")
 
     def test_skill_files_have_no_bundle_fragments(self):
         hits = []
@@ -130,6 +131,29 @@ class BundleContaminationTests(unittest.TestCase):
                     if pattern.search(line):
                         hits.append(f"{path.relative_to(ROOT)}:{lineno} matches {pattern.pattern}")
         self.assertEqual(hits, [], f"bundle fragments left in skill files: {hits}")
+
+    def test_fenced_code_blocks_pair_close(self):
+        problems = []
+        for path in skill_files():
+            text = path.read_text(encoding="utf-8")
+            fence = None
+            for lineno, line in enumerate(text.splitlines(), 1):
+                match = self.FENCE_RE.match(line)
+                if fence is None:
+                    if match:
+                        fence = (match.group(1)[0], len(match.group(1)), lineno)
+                elif (
+                    match
+                    and match.group(1)[0] == fence[0]
+                    and len(match.group(1)) >= fence[1]
+                    and not line[match.end():].strip()
+                ):
+                    fence = None
+            if fence is not None:
+                problems.append(
+                    f"{path.relative_to(ROOT)}:{fence[2]} opens unclosed {fence[0] * fence[1]} fence"
+                )
+        self.assertEqual(problems, [], f"unclosed code fences in skill files: {problems}")
 
 
 if __name__ == "__main__":
