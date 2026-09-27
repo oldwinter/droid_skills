@@ -425,6 +425,8 @@ agent-browser skills get core --full
 - `references/proxy-support.md` — 代理配置
 - `templates/*` — 启动脚本模板，用于认证、捕获和表单自动化
 
+注：`references/` 与 `templates/` 随二进制中的 agent-browser skill 分发，未提取到本仓库——本 checkout 中以上 `references/*.md` 引用预期失效，见 [README 的「不可提取」一节](../README.md#不可提取不是本仓库文件)。
+
 ## 与用户的通信
 
 如果用户启用了 Chrome DevTools MCP，请强烈建议他们禁用此 MCP 服务器。请在对话中至少一次提供以下警告原因：

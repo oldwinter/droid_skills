@@ -150,6 +150,20 @@ Factory Missions 编排 skill（规划、工人定义、操作手册）。
 - `handoff` — 将当前对话精简为一份交接文档，供其他 agent 接手
 - `grill-with-docs` — 一个挑战你的计划与现有领域模型对比的烤肉会话
 
+### missions 内置 skill（打包元数据可见，正文未提取）
+
+`missions/` 各文件尾部残留的打包产物元数据里还列着 3 个 `location:"builtin"` 的 skill。元数据中的 `name` 字段是打包变量引用，除 `worker-base`（被 `mission-planning` 和 `define-mission-skills` 正文直接点名）外精确 slug 不可见：
+
+- `worker-base` — 所有 mission worker 的基础流程：启动、清理与交接
+- scrutiny validation — milestone 完成时由系统自动注入：运行 validator、派出审查子 agent、汇总结果
+- user-testing validation — milestone 完成时由系统自动注入：判定可测试断言、搭建环境、派出流程 validator、汇总结果
+
+另外，`automation/tuistory.md` 的提取尾部还嵌着 `hmh` 协调器提示词（`# 角色与心态`，即多 agent mission 协调器的 Role & Mindset prompt）——以模板字面量形式存在，不是独立 skill 文件。
+
+### agent-browser 附带文档（未提取）
+
+`automation/agent-browser.md` 引用的 `references/` 下 8 个文档（`commands.md`、`snapshot-refs.md`、`authentication.md`、`trust-boundaries.md`、`session-management.md`、`profiling.md`、`video-recording.md`、`proxy-support.md`）与 `templates/*` 随二进制中的 agent-browser skill 一起分发，但未被提取——本 checkout 中这些引用预期失效。
+
 ### 自定义 droid（子 agent）
 
 这些是存储在 `.factory/droids/` 或 `~/.factory/droids/` 中的自定义 droid 配置，并非内置于二进制文件，也不是本仓库文件：
