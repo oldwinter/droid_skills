@@ -150,13 +150,13 @@ Factory Missions 编排 skill（规划、工人定义、操作手册）。
 - `handoff` — 将当前对话精简为一份交接文档，供其他 agent 接手
 - `grill-with-docs` — 一个挑战你的计划与现有领域模型对比的烤肉会话
 
-### missions 内置 skill（打包元数据可见，正文未提取）
+### missions 内置 skill（未拆分为独立文件）
 
-`missions/` 各文件尾部残留的打包产物元数据里还列着 3 个 `location:"builtin"` 的 skill。元数据中的 `name` 字段是打包变量引用，除 `worker-base`（被 `mission-planning` 和 `define-mission-skills` 正文直接点名）外精确 slug 不可见：
+`missions/` 各文件尾部残留的打包产物元数据里还列着 3 个 `location:"builtin"` 的 skill。它们没有拆成独立 skill 文件（catalog 仍计 23 个），但正文并未缺失——以打包变量（`stB`/`btB`/`atB`）的模板字面量形式嵌在 `define-mission-skills.md` 和 `mission-planning.md` 的提取尾部，本 checkout 中可直接阅读。元数据中的 `name` 字段同样是打包变量引用（`PHH`/`LjT`/`DjT`），除 `worker-base`（被 `mission-planning` 和 `define-mission-skills` 正文直接点名）外精确 slug 不可见：
 
-- `worker-base` — 所有 mission worker 的基础流程：启动、清理与交接
-- scrutiny validation — milestone 完成时由系统自动注入：运行 validator、派出审查子 agent、汇总结果
-- user-testing validation — milestone 完成时由系统自动注入：判定可测试断言、搭建环境、派出流程 validator、汇总结果
+- `worker-base` — 所有 mission worker 的基础流程：启动、清理与交接。正文 `# Worker Base Procedures`：`define-mission-skills.md` 第 130–379 行、`mission-planning.md` 第 426–675 行
+- scrutiny validation — milestone 完成时由系统自动注入：运行 validator、派出审查子 agent、汇总结果。正文 `# Scrutiny Validator`：`define-mission-skills.md` 第 379–580 行、`mission-planning.md` 第 675–876 行
+- user-testing validation — milestone 完成时由系统自动注入：判定可测试断言、搭建环境、派出流程 validator、汇总结果。正文 `# User Testing Validator`：`define-mission-skills.md` 第 712–953 行、`mission-planning.md` 第 1008–1249 行
 
 另外，`automation/tuistory.md` 的提取尾部还嵌着 `hmh` 协调器提示词（`# 角色与心态`，即多 agent mission 协调器的 Role & Mindset prompt）——以模板字面量形式存在，不是独立 skill 文件。
 
