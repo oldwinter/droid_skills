@@ -26,14 +26,59 @@ class SessionNavigationPathTests(unittest.TestCase):
         self.assertIn("-Users-<you>-", tree)
         self.assertNotIn("-Users-enoreyes-", tree)
 
-    def test_recent_sessions_list_then_grep_folder(self):
+    def test_recent_sessions_select_exactly_one_folder(self):
         recent = section("### 查看项目的最近会话", "### 按内容搜索")
-        self.assertIn("ls ~/.factory/sessions/", recent)
-        self.assertIn('grep "myapp"', recent)
+        self.assertIn('project_dir=$(select_project_dir "myapp") || exit 1', recent)
         self.assertIn('"$project_dir"', recent)
+        self.assertNotIn("grep", recent)
+        self.assertNotIn("head -1)", recent)
         self.assertNotIn("for f in $(ls", recent)
         self.assertIn("while IFS= read -r -d '' f", recent)
         self.assertNotIn("-Users-enoreyes-code-work-myapp", recent)
+
+    def test_project_selector_preserves_spaces_and_rejects_ambiguity(self):
+        recent = section("### 查看项目的最近会话", "### 按内容搜索")
+        lines = recent.splitlines()
+        start = lines.index('sessions_root="$HOME/.factory/sessions"')
+        end = lines.index('project_dir=$(select_project_dir "myapp") || exit 1')
+        selector = chr(10).join(lines[start : end + 1])
+        selector += chr(10) + 'echo -n "$project_dir"'
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            sessions_root = Path(temp_dir) / ".factory" / "sessions"
+            sessions_root.mkdir(parents=True)
+            expected = sessions_root / "-home-user-My Project-myapp"
+            expected.mkdir()
+            env = {**os.environ, "HOME": temp_dir}
+            one = subprocess.run(
+                ["bash", "-c", selector],
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            (sessions_root / "-home-user-other-myapp").mkdir()
+            many = subprocess.run(
+                ["bash", "-c", selector],
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            for path in sessions_root.iterdir():
+                path.rmdir()
+            none = subprocess.run(
+                ["bash", "-c", selector],
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+        self.assertEqual(one.returncode, 0, one.stderr)
+        self.assertEqual(one.stdout, str(expected))
+        self.assertNotEqual(many.returncode, 0)
+        self.assertNotEqual(none.returncode, 0)
 
     def test_recent_session_sorter_preserves_spaces_and_limits_results(self):
         recent = section("### 查看项目的最近会话", "### 按内容搜索")
@@ -65,9 +110,10 @@ class SessionNavigationPathTests(unittest.TestCase):
     def test_search_and_read_use_local_folder_names(self):
         search = section("### 按内容搜索", "## 阅读会话")
         read = section("## 阅读会话", "## 常见情况")
-        self.assertIn("ls ~/.factory/sessions/", search)
-        self.assertIn('"$project"', search)
-        self.assertIn("ls ~/.factory/sessions/", read)
+        self.assertIn('project_dir=$(select_project_dir "myapp") || exit 1', search)
+        self.assertIn('api_dir=$(select_project_dir "api") || exit 1', search)
+        self.assertNotIn("grep", search)
+        self.assertIn('project_dir=$(select_project_dir "myapp") || exit 1', read)
         self.assertIn('"$project_dir"', read)
         for block in (search, read):
             self.assertNotIn("-Users-enoreyes-", block)

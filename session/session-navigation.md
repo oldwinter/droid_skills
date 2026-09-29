@@ -40,20 +40,39 @@ description: |
 ### 列出项目文件夹
 
 ```bash
-# See all project folders with sessions
-ls ~/.factory/sessions/
+# 列出所有包含会话的项目文件夹
+sessions_root="$HOME/.factory/sessions"
+find "$sessions_root" -mindepth 1 -maxdepth 1 -type d -print
 
-# Find folders for a specific project (partial match)
-ls ~/.factory/sessions/ | grep "myapp"
+# 按字面名称片段选择项目；零匹配或多匹配都会失败
+select_project_dir() {
+  local needle=$1
+  set -- "$sessions_root"/*"$needle"*
+  if [[ "$#" -ne 1 || ! -d "$1" ]]; then
+    echo "Expected exactly one project directory containing: $needle" >&2
+    return 1
+  fi
+  echo "$1"
+}
+
+project_dir=$(select_project_dir "myapp") || exit 1
+echo "$project_dir"
 ```
 
 ### 查看项目的最近会话
 
 ```bash
-# List project folders first, then pick a name from that list
-ls ~/.factory/sessions/
-project=$(ls ~/.factory/sessions/ | grep "myapp" | head -1)
-project_dir="$HOME/.factory/sessions/$project"
+sessions_root="$HOME/.factory/sessions"
+select_project_dir() {
+  local needle=$1
+  set -- "$sessions_root"/*"$needle"*
+  if [[ "$#" -ne 1 || ! -d "$1" ]]; then
+    echo "Expected exactly one project directory containing: $needle" >&2
+    return 1
+  fi
+  echo "$1"
+}
+project_dir=$(select_project_dir "myapp") || exit 1
 
 # List sessions by date for that project
 ls -lt "$project_dir"/
@@ -83,17 +102,27 @@ PY
 ### 按内容搜索
 
 ```bash
-# Search across ALL sessions
-rg "authentication" ~/.factory/sessions/
+sessions_root="$HOME/.factory/sessions"
+select_project_dir() {
+  local needle=$1
+  set -- "$sessions_root"/*"$needle"*
+  if [[ "$#" -ne 1 || ! -d "$1" ]]; then
+    echo "Expected exactly one project directory containing: $needle" >&2
+    return 1
+  fi
+  echo "$1"
+}
 
-# Search within a project folder from the list above
-ls ~/.factory/sessions/
-project=$(ls ~/.factory/sessions/ | grep "myapp" | head -1)
-rg "bug fix" ~/.factory/sessions/"$project"/
+# 搜索所有会话
+rg "authentication" "$sessions_root"
 
-# See matches in context
-api=$(ls ~/.factory/sessions/ | grep "api" | head -1)
-rg -C 2 "login" ~/.factory/sessions/"$api"/
+# 搜索唯一匹配的项目文件夹
+project_dir=$(select_project_dir "myapp") || exit 1
+rg "bug fix" "$project_dir"
+
+# 查看上下文中的匹配项
+api_dir=$(select_project_dir "api") || exit 1
+rg -C 2 "login" "$api_dir"
 ```
 
 ### 找到有关某个主题的项目会话
@@ -108,9 +137,17 @@ rg -l "redis" ~/.factory/sessions/ | cut -d'/' -f1-5 | sort -u
 一旦找到了会话文件：
 
 ```bash
-ls ~/.factory/sessions/
-project=$(ls ~/.factory/sessions/ | grep "myapp" | head -1)
-project_dir="$HOME/.factory/sessions/$project"
+sessions_root="$HOME/.factory/sessions"
+select_project_dir() {
+  local needle=$1
+  set -- "$sessions_root"/*"$needle"*
+  if [[ "$#" -ne 1 || ! -d "$1" ]]; then
+    echo "Expected exactly one project directory containing: $needle" >&2
+    return 1
+  fi
+  echo "$1"
+}
+project_dir=$(select_project_dir "myapp") || exit 1
 
 # 选择一个真实的会话文件；未找到时立即停止
 session_file=$(find "$project_dir" -maxdepth 1 -type f -name '*.jsonl' -print -quit)
