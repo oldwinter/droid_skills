@@ -23,6 +23,9 @@ description: |
 ├── -Users-<you>-code-work-myapp/
 │   ├── <uuid>.jsonl
 │   └── <uuid>.settings.json
+├── -home-<you>-code-work-myapp/
+│   ├── <uuid>.jsonl
+│   └── <uuid>.settings.json
 ├── -Users-<you>-code-projects-api/
 │   ├── <uuid>.jsonl
 │   └── <uuid>.settings.json
@@ -192,7 +195,7 @@ wc -l "$session_file"
 
 使用`rg`(ripgrep)代替 grep。它更快且能更好地处理嵌套文件夹。
 
-项目路径中的斜杠被替换为短横线。`/Users/me/code/app`变为`-Users-me-code-app`。
+项目路径中的斜杠会在所有支持的平台上被替换为短横线。例如，macOS 的 `/Users/me/code/app` 变为 `-Users-me-code-app`，Linux 的 `/home/me/code/app` 变为 `-home-me-code-app`。
 
 会话标题并不总是有帮助的。有时需要阅读对话内容才能知道它是关于什么的。
 

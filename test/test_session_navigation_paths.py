@@ -21,10 +21,18 @@ class SessionNavigationPathTests(unittest.TestCase):
         self.assertNotIn("enoreyes", NAV)
         self.assertNotIn("-Users-enoreyes-", NAV)
 
-    def test_tree_uses_placeholder_not_a_real_user(self):
+    def test_tree_covers_macos_and_linux_placeholders(self):
         tree = section("## 会话存放位置", "## 查找会话")
         self.assertIn("-Users-<you>-", tree)
+        self.assertIn("-home-<you>-", tree)
         self.assertNotIn("-Users-enoreyes-", tree)
+
+    def test_path_encoding_tip_covers_supported_home_layouts(self):
+        tips = NAV.split("## 提示", 1)[1]
+        self.assertIn("/Users/me/code/app", tips)
+        self.assertIn("-Users-me-code-app", tips)
+        self.assertIn("/home/me/code/app", tips)
+        self.assertIn("-home-me-code-app", tips)
 
     def test_recent_sessions_select_exactly_one_folder(self):
         recent = section("### 查看项目的最近会话", "### 按内容搜索")
