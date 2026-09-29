@@ -227,19 +227,19 @@ command -v magick || command -v convert
 </details>
 ```
 
-For `auto_commit` or `open_pr`: The workflow must have `contents: write` and `pull-requests: write` permissions. The agent writes a `qa-results/skill-updates.json` file with structured edits. A workflow step after the QA run parses this JSON and applies the edits to the actual repo files, then either commits directly (`auto_commit`) or opens a draft PR (`open_pr`). See the workflow template section for the exact implementation.
+对于 `auto_commit` 或 `open_pr`：workflow 必须具有 `contents: write` 和 `pull-requests: write` 权限。agent 会把结构化编辑写入 `qa-results/skill-updates.json`。QA 运行后的 workflow 步骤解析此 JSON，将编辑应用到仓库中的实际文件，然后直接提交（`auto_commit`）或打开草稿 PR（`open_pr`）。确切实现请参见 workflow 模板一节。
 
-Save progress after this category.
+完成此类别后保存进度。
 
 ---
 
-# Phase 4: Generate the QA Skill
+# 阶段 4：生成 QA skill
 
-Using all gathered information, generate the following files:
+根据已收集的全部信息，生成以下文件：
 
 ## 4a. config.yaml
 
-Generate `.factory/skills/qa/config.yaml` with all configuration as a single source of truth. Follow this structure:
+生成 `.factory/skills/qa/config.yaml`，将所有配置集中为单一真源。遵循以下结构：
 
 ```yaml
 project: <ProjectName>

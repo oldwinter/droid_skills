@@ -7,6 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 AGENT_BROWSER = ROOT / "automation" / "agent-browser.md"
 DEPENDENCIES = ROOT / "dependencies.md"
+INSTALL_QA = ROOT / "qa" / "install-qa.md"
 FENCE = chr(96) * 3
 TICK = chr(96)
 
@@ -59,6 +60,19 @@ class ContentContractTests(unittest.TestCase):
                 f"expected a real {tool} invocation",
             )
             self.assertIn(f"| {TICK}{tool}{TICK} |", inventory)
+
+    def test_qa_phase_four_instructions_are_translated_outside_fences(self):
+        visible = outside_fences(INSTALL_QA.read_text(encoding="utf-8"))
+        untranslated = (
+            f"For {TICK}auto_commit{TICK} or {TICK}open_pr{TICK}",
+            "Save progress after this category.",
+            "# Phase 4: Generate the QA Skill",
+            "Using all gathered information, generate the following files:",
+            f"Generate {TICK}.factory/skills/qa/config.yaml{TICK}",
+        )
+        for phrase in untranslated:
+            self.assertNotIn(phrase, visible)
+        self.assertIn("# 阶段 4：生成 QA skill", visible)
 
 
 if __name__ == "__main__":
