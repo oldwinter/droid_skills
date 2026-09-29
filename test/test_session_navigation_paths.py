@@ -20,6 +20,8 @@ class SessionNavigationPathTests(unittest.TestCase):
     def test_examples_do_not_hardcode_upstream_home(self):
         self.assertNotIn("enoreyes", NAV)
         self.assertNotIn("-Users-enoreyes-", NAV)
+        self.assertNotIn("-maxdepth", NAV)
+        self.assertNotIn("-mindepth", NAV)
 
     def test_tree_covers_macos_and_linux_placeholders(self):
         tree = section("## 会话存放位置", "## 查找会话")
@@ -130,8 +132,9 @@ class SessionNavigationPathTests(unittest.TestCase):
         read = section("## 阅读会话", "## 常见情况")
         self.assertNotIn("<uuid>.jsonl", read)
         self.assertNotIn("<uuid>.settings.json", read)
-        self.assertIn("session_file=$(find", read)
-        self.assertIn('[[ -z "$session_file" ]]', read)
+        self.assertIn('set -- "$project_dir"/*.jsonl', read)
+        self.assertIn('[[ "$#" -eq 1 && ! -f "$1" ]]', read)
+        self.assertIn("session_file=$1", read)
         self.assertIn('head -1 "$session_file"', read)
         self.assertIn('wc -l "$session_file"', read)
 

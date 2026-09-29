@@ -45,7 +45,9 @@ description: |
 ```bash
 # 列出所有包含会话的项目文件夹
 sessions_root="$HOME/.factory/sessions"
-find "$sessions_root" -mindepth 1 -maxdepth 1 -type d -print
+for project_dir in "$sessions_root"/*; do
+  [[ -d "$project_dir" ]] && echo "$project_dir"
+done
 
 # 按字面名称片段选择项目；零匹配或多匹配都会失败
 select_project_dir() {
@@ -158,11 +160,12 @@ select_project_dir() {
 project_dir=$(select_project_dir "myapp") || exit 1
 
 # 选择一个真实的会话文件；未找到时立即停止
-session_file=$(find "$project_dir" -maxdepth 1 -type f -name '*.jsonl' -print -quit)
-if [[ -z "$session_file" ]]; then
+set -- "$project_dir"/*.jsonl
+if [[ "$#" -eq 1 && ! -f "$1" ]]; then
   echo "No session files found in $project_dir" >&2
   exit 1
 fi
+session_file=$1
 settings_file="${session_file%.jsonl}.settings.json"
 
 # 元数据（标题、工作目录）
