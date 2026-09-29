@@ -74,6 +74,14 @@ class ContentContractTests(unittest.TestCase):
             self.assertNotIn(phrase, visible)
         self.assertIn("# 阶段 4：生成 QA skill", visible)
 
+    def test_auth_state_example_uses_private_user_storage(self):
+        text = AGENT_BROWSER.read_text(encoding="utf-8")
+        self.assertNotIn("state save ./auth.json", text)
+        self.assertNotIn("--state ./auth.json", text)
+        self.assertIn("$" + "{XDG_STATE_HOME:-$HOME/.local/state}", text)
+        self.assertIn("umask 077", text)
+        self.assertIn('chmod 600 "$state_file"', text)
+
 
 if __name__ == "__main__":
     unittest.main()

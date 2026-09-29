@@ -181,11 +181,16 @@ agent-browser auth login my-app    # fills + clicks, waits for form
 ### 跨运行保持会话
 
 ```bash
-# Log in once, save cookies + localStorage
-agent-browser state save ./auth.json
+# 登录一次，将 cookies + localStorage 保存到项目目录之外
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/agent-browser"
+umask 077
+mkdir -p "$state_dir"
+state_file="$state_dir/my-app.json"
+agent-browser state save "$state_file"
+chmod 600 "$state_file"
 
-# Later runs start already-logged-in
-agent-browser --state ./auth.json open https://app.example.com
+# 后续运行直接恢复已登录状态
+agent-browser --state "$state_file" open https://app.example.com
 ```
 
 或使用 `--session-name` 以实现自动保存/恢复:
