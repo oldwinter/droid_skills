@@ -94,15 +94,28 @@ rg -l "redis" ~/.factory/sessions/ | cut -d'/' -f1-5 | sort -u
 ```bash
 ls ~/.factory/sessions/
 project=$(ls ~/.factory/sessions/ | grep "myapp" | head -1)
+project_dir="$HOME/.factory/sessions/$project"
 
-# The metadata (title, working directory)
-head -1 ~/.factory/sessions/"$project"/<uuid>.jsonl | jq .
+# 选择一个真实的会话文件；未找到时立即停止
+session_file=$(find "$project_dir" -maxdepth 1 -type f -name '*.jsonl' -print -quit)
+if [[ -z "$session_file" ]]; then
+  echo "No session files found in $project_dir" >&2
+  exit 1
+fi
+settings_file="${session_file%.jsonl}.settings.json"
 
-# Session stats (model, tokens, duration)
-cat ~/.factory/sessions/"$project"/<uuid>.settings.json | jq .
+# 元数据（标题、工作目录）
+head -1 "$session_file" | jq .
 
-# How long was this conversation?
-wc -l ~/.factory/sessions/"$project"/<uuid>.jsonl
+# 会话统计（模型、token、时长）
+if [[ -f "$settings_file" ]]; then
+  jq . "$settings_file"
+else
+  echo "Settings file not found: $settings_file" >&2
+fi
+
+# 对话有多少行？
+wc -l "$session_file"
 ```
 
 用户消息带有 `"role": "user"`，助手响应带有 `"role": "assistant"`。工具调用显示了运行的命令和被修改的文件。

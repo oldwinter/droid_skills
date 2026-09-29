@@ -33,10 +33,21 @@ class SessionNavigationPathTests(unittest.TestCase):
     def test_search_and_read_use_local_folder_names(self):
         search = section("### 按内容搜索", "## 阅读会话")
         read = section("## 阅读会话", "## 常见情况")
+        self.assertIn("ls ~/.factory/sessions/", search)
+        self.assertIn('"$project"', search)
+        self.assertIn("ls ~/.factory/sessions/", read)
+        self.assertIn('"$project_dir"', read)
         for block in (search, read):
-            self.assertIn("ls ~/.factory/sessions/", block)
-            self.assertIn('"$project"', block)
             self.assertNotIn("-Users-enoreyes-", block)
+
+    def test_read_commands_select_and_quote_a_real_session_file(self):
+        read = section("## 阅读会话", "## 常见情况")
+        self.assertNotIn("<uuid>.jsonl", read)
+        self.assertNotIn("<uuid>.settings.json", read)
+        self.assertIn("session_file=$(find", read)
+        self.assertIn('[[ -z "$session_file" ]]', read)
+        self.assertIn('head -1 "$session_file"', read)
+        self.assertIn('wc -l "$session_file"', read)
 
 
 if __name__ == "__main__":
