@@ -67,6 +67,8 @@ which tuistory || (bun add -g tuistory || npm install -g tuistory)
 | `node` | 各种 skill | JS 运行时 |
 | `npm` / `bun` | 各种 skill | 包管理 |
 | `gh` | install-code-review, install-wiki | GitHub CLI 用于 PR 创建 |
+| `jq` | session-navigation, security-review, missions | 需要这些 skill 时通过系统包管理器安装，用于解析 JSON |
+| `glab` | install-code-review, incident | 仅 GitLab 工作流需要；安装后运行 `glab auth login` |
 | `xcodebuild` | install-qa (macOS) | Xcode 构建工具 |
 
 ## Droid 命令行指令

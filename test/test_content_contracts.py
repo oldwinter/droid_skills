@@ -6,7 +6,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 AGENT_BROWSER = ROOT / "automation" / "agent-browser.md"
+DEPENDENCIES = ROOT / "dependencies.md"
 FENCE = chr(96) * 3
+TICK = chr(96)
 
 
 def outside_fences(text: str) -> str:
@@ -38,6 +40,25 @@ class ContentContractTests(unittest.TestCase):
                 missing.append(raw_target)
         self.assertEqual(missing, [])
         self.assertNotIn("](references/", visible)
+
+    def test_explicit_cli_dependencies_are_in_inventory(self):
+        inventory = DEPENDENCIES.read_text(encoding="utf-8")
+        usages = {
+            "jq": (
+                ROOT / "session" / "session-navigation.md",
+                ROOT / "review" / "security-review.md",
+            ),
+            "glab": (
+                ROOT / "installers" / "install-code-review.md",
+                ROOT / "incident" / "incident.md",
+            ),
+        }
+        for tool, paths in usages.items():
+            self.assertTrue(
+                any(tool in path.read_text(encoding="utf-8") for path in paths),
+                f"expected a real {tool} invocation",
+            )
+            self.assertIn(f"| {TICK}{tool}{TICK} |", inventory)
 
 
 if __name__ == "__main__":
