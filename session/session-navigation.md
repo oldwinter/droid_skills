@@ -53,15 +53,31 @@ ls ~/.factory/sessions/ | grep "myapp"
 # List project folders first, then pick a name from that list
 ls ~/.factory/sessions/
 project=$(ls ~/.factory/sessions/ | grep "myapp" | head -1)
+project_dir="$HOME/.factory/sessions/$project"
 
 # List sessions by date for that project
-ls -lt ~/.factory/sessions/"$project"/
+ls -lt "$project_dir"/
 
-# Get titles of recent sessions
-for f in $(ls -t ~/.factory/sessions/"$project"/*.jsonl | head -10); do
+# 获取最近 10 个会话的标题；NUL 分隔可保留路径中的空格
+while IFS= read -r -d '' f; do
   echo "=== $f ==="
   head -1 "$f" | jq -r '.title // "Untitled"'
-done
+done < <(
+  python3 - "$project_dir" <<'PY'
+import os
+import sys
+from pathlib import Path
+
+files = sorted(
+    Path(sys.argv[1]).glob("*.jsonl"),
+    key=lambda path: path.stat().st_mtime,
+    reverse=True,
+)
+for path in files[:10]:
+    sys.stdout.buffer.write(os.fsencode(path))
+    sys.stdout.buffer.write(bytes([0]))
+PY
+)
 ```
 
 ### 按内容搜索

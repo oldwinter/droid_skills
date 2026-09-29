@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Keep session-navigation examples copyable on a local machine."""
 
+import os
+import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -27,8 +30,37 @@ class SessionNavigationPathTests(unittest.TestCase):
         recent = section("### 查看项目的最近会话", "### 按内容搜索")
         self.assertIn("ls ~/.factory/sessions/", recent)
         self.assertIn('grep "myapp"', recent)
-        self.assertIn('"$project"', recent)
+        self.assertIn('"$project_dir"', recent)
+        self.assertNotIn("for f in $(ls", recent)
+        self.assertIn("while IFS= read -r -d '' f", recent)
         self.assertNotIn("-Users-enoreyes-code-work-myapp", recent)
+
+    def test_recent_session_sorter_preserves_spaces_and_limits_results(self):
+        recent = section("### 查看项目的最近会话", "### 按内容搜索")
+        lines = recent.splitlines()
+        start = lines.index("""  python3 - "$project_dir" <<'PY'""")
+        end = lines.index("PY", start + 1)
+        script = chr(10).join(lines[start + 1 : end])
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project_dir = Path(temp_dir) / "project with spaces"
+            project_dir.mkdir()
+            for index in range(12):
+                path = project_dir / f"session-{index:02d}.jsonl"
+                path.write_text("{}" + chr(10), encoding="utf-8")
+                os.utime(path, (index, index))
+            result = subprocess.run(
+                ["python3", "-", str(project_dir)],
+                input=script.encode(),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+            )
+        self.assertEqual(result.returncode, 0, result.stderr.decode())
+        paths = [Path(os.fsdecode(raw)) for raw in result.stdout.split(bytes([0])) if raw]
+        self.assertEqual(len(paths), 10)
+        self.assertEqual(paths[0].name, "session-11.jsonl")
+        self.assertEqual(paths[-1].name, "session-02.jsonl")
+        self.assertTrue(all("project with spaces" in str(path) for path in paths))
 
     def test_search_and_read_use_local_folder_names(self):
         search = section("### 按内容搜索", "## 阅读会话")
