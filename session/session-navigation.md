@@ -128,8 +128,13 @@ rg -C 2 "login" "$api_dir"
 ### 找到有关某个主题的项目会话
 
 ```bash
-# Which projects have sessions mentioning "redis"?
-rg -l "redis" ~/.factory/sessions/ | cut -d'/' -f1-5 | sort -u
+# 哪些项目的会话提到了 "redis"？从 sessions 根目录计算相对路径
+sessions_root="$HOME/.factory/sessions"
+rg -0 -l "redis" "$sessions_root" |
+while IFS= read -r -d '' file; do
+  relative=${file#"$sessions_root"/}
+  echo "${relative%%/*}"
+done | sort -u
 ```
 
 ## 阅读会话

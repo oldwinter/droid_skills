@@ -127,6 +127,33 @@ class SessionNavigationPathTests(unittest.TestCase):
         self.assertIn('head -1 "$session_file"', read)
         self.assertIn('wc -l "$session_file"', read)
 
+    def test_topic_search_derives_first_path_relative_to_sessions_root(self):
+        topic = section("### 找到有关某个主题的项目会话", "## 阅读会话")
+        self.assertNotIn("cut -d'/' -f1-5", topic)
+        self.assertIn('relative=${file#"$sessions_root"/}', topic)
+        self.assertIn('echo "${relative%%/*}"', topic)
+
+        commands = [
+            'relative=${file#"$sessions_root"/}',
+            'echo "${relative%%/*}"',
+        ]
+        script = chr(10).join(
+            ['sessions_root=$1', 'file=$2', *commands]
+        )
+        cases = (
+            ("/Users/alice/.factory/sessions", "-Users-alice-code-app"),
+            ("/home/alice/.factory/sessions", "-home-alice-code-app"),
+        )
+        for root, project in cases:
+            result = subprocess.run(
+                ["bash", "-c", script, "bash", root, f"{root}/{project}/id.jsonl"],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(result.stdout.strip(), project)
+
 
 if __name__ == "__main__":
     unittest.main()
