@@ -111,5 +111,26 @@ class CatalogProjectionTests(unittest.TestCase):
             self.assertTrue(path.is_file())
 
 
+class BundleContaminationTests(unittest.TestCase):
+    """Skill files must not retain minified JS from the extracted bundle."""
+
+    BUNDLE_MARKERS = (
+        re.compile(r"`,[A-Za-z0-9_$]{2,}="),
+        re.compile(r"\bvar [A-Za-z0-9_$]{2,}="),
+        re.compile(r"systemPrompt:"),
+        re.compile(r"metadata:\{"),
+    )
+
+    def test_skill_files_have_no_bundle_fragments(self):
+        hits = []
+        for path in skill_files():
+            text = path.read_text(encoding="utf-8")
+            for lineno, line in enumerate(text.splitlines(), 1):
+                for pattern in self.BUNDLE_MARKERS:
+                    if pattern.search(line):
+                        hits.append(f"{path.relative_to(ROOT)}:{lineno} matches {pattern.pattern}")
+        self.assertEqual(hits, [], f"bundle fragments left in skill files: {hits}")
+
+
 if __name__ == "__main__":
     unittest.main()
